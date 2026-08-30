@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import { List, X } from '@phosphor-icons/react';
 import { AppNav } from './AppNav';
+import { BrandLogo } from './BrandLogo';
 
 export function AppLayout() {
   const mainRef = useRef<HTMLElement>(null);
@@ -21,8 +22,8 @@ export function AppLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen w-full max-w-full flex-col overflow-x-hidden lg:flex-row">
-      <div className="hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:shrink-0">
+    <div className="flex h-dvh w-full max-w-full flex-col overflow-hidden lg:flex-row">
+      <div className="hidden h-full min-h-0 shrink-0 lg:flex">
         <AppNav />
       </div>
 
@@ -48,8 +49,8 @@ export function AppLayout() {
         </div>
       ) : null}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-mist/15 bg-paper/90 px-4 backdrop-blur md:px-6">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center gap-3 border-b border-mist/15 bg-paper/90 px-4 backdrop-blur md:px-6">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -59,9 +60,10 @@ export function AppLayout() {
             <List size={18} weight="bold" />
           </button>
           <div className="flex items-center gap-2.5 py-3.5">
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand/10 text-brand lg:hidden">
-              <span className="font-display text-sm font-bold">L</span>
-            </span>
+            <BrandLogo
+              size={28}
+              className="h-7 w-7 rounded-lg object-contain lg:hidden"
+            />
             <p className="text-sm text-mist">
               Ledger <span className="mx-1 text-mist/40">/</span>
               <span className="font-medium text-ink">Keuangan pribadi</span>
@@ -71,12 +73,12 @@ export function AppLayout() {
 
         <main
           ref={mainRef}
-          className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 md:px-6 md:py-10"
+          className="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto overscroll-contain px-4 py-8 md:px-6 md:py-10"
         >
           <Outlet />
         </main>
 
-        <footer className="border-t border-mist/15 px-4 py-5 md:px-6">
+        <footer className="shrink-0 border-t border-mist/15 px-4 py-5 md:px-6">
           <div className="mx-auto flex max-w-6xl flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <p className="font-display text-base font-bold text-ink">Ledger</p>
             <p className="font-mono text-[0.65rem] tracking-wide text-mist/60 uppercase">

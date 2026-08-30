@@ -25,7 +25,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // SPA fallback: non-API GET tanpa ekstensi file → index.html (React Router)
-  const indexHtml = join(__dirname, '..', 'public', 'index.html');
+  const indexHtml = join(process.cwd(), 'public', 'index.html');
   if (existsSync(indexHtml)) {
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (req.method !== 'GET' && req.method !== 'HEAD') {

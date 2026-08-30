@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Lightning, Spinner } from '@phosphor-icons/react';
+import { Spinner } from '@phosphor-icons/react';
 import { useAuth } from '../../lib/auth';
 import { ApiError } from '../../lib/api-client';
+import { BrandLogo } from '../../components/layout/BrandLogo';
 
 export function RegisterPage() {
   const { status, config, register } = useAuth();
@@ -52,9 +53,7 @@ export function RegisterPage() {
     <div className="grid min-h-screen place-items-center bg-paper-deep px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand text-white shadow-md">
-            <Lightning size={24} weight="fill" />
-          </span>
+          <BrandLogo size={48} className="h-12 w-12 rounded-xl object-contain" />
           <h1 className="page-h1 mt-4">Buat akun</h1>
           <p className="mt-1.5 text-sm text-mist">
             Mulai catat pemasukan &amp; pengeluaran.

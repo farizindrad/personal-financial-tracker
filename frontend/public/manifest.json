@@ -1,5 +1,6 @@
 {
- "name": "App",
+ "name": "Ledger",
+ "short_name": "Ledger",
  "icons": [
   {
    "src": "\/android-icon-36x36.png",
