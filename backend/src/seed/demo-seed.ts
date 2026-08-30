@@ -28,14 +28,40 @@ export const DEMO_NAME = process.env.DEMO_NAME?.trim() || 'Demo User';
  * Idempotent: hapus user demo (cascade menghapus semua datanya) lalu buat ulang.
  * Dipakai seed.ts (prisma db seed) & DemoResetScheduler (IS_DEMO=true).
  */
+async function deleteUsersAndOwnedRows(
+  prisma: PrismaClient,
+  emails: string[],
+): Promise<void> {
+  const users = await prisma.user.findMany({
+    where: { email: { in: emails } },
+    select: { id: true },
+  });
+  const ids = users.map((u) => u.id);
+  if (ids.length === 0) {
+    return;
+  }
+  // User ON DELETE CASCADE does not cover account_id on trx/goals/recurring.
+  // deleteMany(users) hits P2003; wipe children first (no per-row loop).
+  await prisma.transaction.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.budget.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.recurringTransaction.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.savingsGoal.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.category.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.account.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.asset.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.liability.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.user.deleteMany({ where: { id: { in: ids } } });
+}
+
 export async function seedDemoData(
   prisma: PrismaClient,
   email: string = resolveDemoEmail(),
   password: string = resolveDemoPassword(),
   name: string = DEMO_NAME,
 ): Promise<number> {
-  const leftover = [...new Set([email, FALLBACK_DEMO_EMAIL])];
-  await prisma.user.deleteMany({ where: { email: { in: leftover } } });
+  await deleteUsersAndOwnedRows(prisma, [
+    ...new Set([email, FALLBACK_DEMO_EMAIL]),
+  ]);
 
   const user = await prisma.user.create({
     data: { email, passwordHash: await hash(password, 10), name },
