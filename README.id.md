@@ -6,7 +6,7 @@ Aplikasi pencatat keuangan pribadi dengan input **manual** — tanpa integrasi b
 
 Antarmuka aplikasi berbahasa Indonesia.
 
-**Demo publik:** _URL menyusul — data dummy, di-reset berkala. Bukan data pribadi._
+**Demo publik:** https://finance.farizindra.net — data dummy, reset harian. Login: `demo@finance.farizindra.net` / `demo1234`. Bukan data pribadi.
 
 ## Fitur
 
@@ -60,7 +60,7 @@ Butuh **Node.js 20+** dan **MySQL** di mesin sendiri. `DATABASE_URL` hanya ke da
    npm run dev
    ```
 
-Buka `http://localhost:5173`. Vite mem-proxy `/api` ke API di port `3000`. Login seed: `demo@ledger.app` / `demo1234`.
+Buka `http://localhost:5173`. Vite mem-proxy `/api` ke API di port `3000`. Login seed mengikuti `DEMO_EMAIL` / `DEMO_PASSWORD` di `backend/.env` (default `demo@ledger.app` / `demo1234` kalau tidak diisi).
 
 ## Perintah
 
@@ -89,21 +89,10 @@ Lanjut: [arsitektur](docs/architecture.md) · [API](docs/api-reference.md) · [p
 
 ## Deploy
 
-Satu clone git. Dua container dari image yang sama. Dua file env **hanya di server**.
-
-| Service | File env | Bind host | URL publik |
-|---|---|---|---|
-| `finance-app-demo` | `.env.demo` | `127.0.0.1:3301` | ya (portfolio) |
-| `finance-app` | `.env.production` | `127.0.0.1:3300` | tidak |
-
-Compose join Docker network yang sudah ada; host DB di container: `mysql-db`. Jangan buat container MySQL baru. Salin [`.env.example`](.env.example) jadi `.env.demo` (nanti `.env.production`) di VPS — jangan di-commit.
+Satu clone git. Salin [`.env.example`](.env.example) jadi `.env.demo` di server — jangan di-commit. `DATABASE_URL` ke MySQL yang sudah ada (host `mysql-db` di Docker network). Jangan buat container MySQL baru.
 
 ```bash
 docker compose up -d --build finance-app-demo
 ```
 
-Reverse proxy ke `127.0.0.1:3301`. Setelah ubah kode: `git pull` sekali, lalu rebuild service yang perlu.
-
-## Yang ada di GitHub
-
-Dokumentasi untuk manusia: README ini, [README.md](README.md) (English), dan `docs/`. Brief untuk agent, rules editor, dan spec kerja tetap di mesin lokal (gitignore).
+Reverse proxy ke `127.0.0.1:3301` (atau container `finance-app-demo:3000` di network yang sama). Setelah ubah kode: `git pull` sekali, lalu rebuild. Container kedua (`finance-app`) bisa jalan data privat tanpa URL publik.

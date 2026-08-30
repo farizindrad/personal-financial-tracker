@@ -6,7 +6,7 @@ Personal finance tracker with **manual** entry — no bank integrations. Record 
 
 The UI is in Indonesian. This README is English.
 
-**Live demo:** _URL TBD — public demo instance with dummy data that resets on a schedule. Not personal data._
+**Live demo:** https://finance.farizindra.net — dummy data, resets daily. Login: `demo@finance.farizindra.net` / `demo1234`. Not personal data.
 
 ## Features
 
@@ -60,7 +60,7 @@ Need **Node.js 20+** and **MySQL** on your machine. Point `DATABASE_URL` at a **
    npm run dev
    ```
 
-Open `http://localhost:5173`. Vite proxies `/api` to the API on port `3000`. Seed login: `demo@ledger.app` / `demo1234`.
+Open `http://localhost:5173`. Vite proxies `/api` to the API on port `3000`. Seed login follows `DEMO_EMAIL` / `DEMO_PASSWORD` in `backend/.env` (defaults `demo@ledger.app` / `demo1234` if unset).
 
 ## Commands
 
@@ -89,21 +89,10 @@ More: [architecture](docs/architecture.md) · [API](docs/api-reference.md) · [p
 
 ## Deploy
 
-One git clone. Two containers from the same image. Two env files **on the server only**.
-
-| Service | Env file | Host bind | Public URL |
-|---|---|---|---|
-| `finance-app-demo` | `.env.demo` | `127.0.0.1:3301` | yes (portfolio) |
-| `finance-app` | `.env.production` | `127.0.0.1:3300` | no |
-
-Compose joins an existing Docker network so the app can reach MySQL as host `mysql-db`. Do not add a second MySQL container. Copy [`.env.example`](.env.example) to `.env.demo` (and later `.env.production`) on the VPS — never commit those files.
+One git clone. Copy [`.env.example`](.env.example) to `.env.demo` on the server — never commit it. Point `DATABASE_URL` at an existing MySQL (`mysql-db` on the Docker network). Do not add a second MySQL container.
 
 ```bash
 docker compose up -d --build finance-app-demo
 ```
 
-Put a reverse proxy in front of `127.0.0.1:3301`. After code changes: `git pull` once, then rebuild the service you need.
-
-## Docs on this repo
-
-Human-facing only: this README, [README.id.md](README.id.md), and `docs/`. Agent briefs, editor rules, and working specs stay local and are gitignored.
+Put a reverse proxy in front of `127.0.0.1:3301` (or container `finance-app-demo:3000` on the same network). After code changes: `git pull` once, then rebuild. A second container (`finance-app`) can run private data with no public URL.
