@@ -45,7 +45,7 @@ The local database is completely separate from any production database. Never po
 
 ## Demo mode
 
-`IS_DEMO=true` disables registration, tightens throttling, and enables the demo-reset scheduler (reseeds the demo user every 6 hours). The demo account is created by the seed. `JWT_SECRET` must be set in every environment — sessions won't start without it.
+`IS_DEMO=true` disables registration, tightens throttling, and enables the demo-reset scheduler (reseeds the demo user once a day at 00:00 `Asia/Jakarta`; override with `DEMO_RESET_CRON`). The demo account is created by the seed. `JWT_SECRET` must be set in every environment — sessions won't start without it.
 
 ## Seed data
 

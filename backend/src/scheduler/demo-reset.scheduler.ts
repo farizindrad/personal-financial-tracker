@@ -5,6 +5,10 @@ import { isDemoMode } from '../common/throttler.config';
 import { PrismaService } from '../prisma/prisma.service';
 import { seedDemoData } from '../seed/demo-seed';
 
+/** Default: once a day at 00:00 (see Cron `timeZone`). Override with DEMO_RESET_CRON. */
+const demoResetCron =
+  process.env.DEMO_RESET_CRON?.trim() || CronExpression.EVERY_DAY_AT_MIDNIGHT;
+
 /**
  * Reset data demo berkala — aktif HANYA saat IS_DEMO=true.
  * Jaga supaya instance demo tidak penuh sampah & selalu tampil "hidup".
@@ -18,7 +22,7 @@ export class DemoResetScheduler {
     private readonly config: ConfigService,
   ) {}
 
-  @Cron(CronExpression.EVERY_6_HOURS)
+  @Cron(demoResetCron, { timeZone: 'Asia/Jakarta' })
   async handleDemoReset() {
     if (!isDemoMode(this.config)) {
       return;

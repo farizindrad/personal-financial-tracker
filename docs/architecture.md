@@ -115,7 +115,7 @@ Modules: `auth`, `accounts`, `categories`, `transactions`, `budgets`, `savings-g
 - Auth cookie — JWT signed with `JWT_SECRET`, stored in an HttpOnly cookie `ledger_token`, `SESSION_TTL_DAYS` lifetime. Logout clears it.
 - `WriteThrottlerGuard` — rate-limits all endpoints that mutate data; stricter in demo mode. Auth endpoints get a tight `auth: 10/min` limiter.
 - `RecurringScheduler` — `@Cron(EVERY_DAY_AT_1AM)` runs `processDue()` to generate transactions whose `next_run_date` has passed (per user).
-- `DemoResetScheduler` — `@Cron` every 6 hours, only active when `IS_DEMO=true`; reseeds the demo user so the public instance always has fresh data.
+- `DemoResetScheduler` — `@Cron` once daily at 00:00 `Asia/Jakarta` (override with `DEMO_RESET_CRON`), only active when `IS_DEMO=true`; reseeds the demo user so the public instance always has fresh data.
 
 ### Anti-N+1 rules (hard constraints)
 
