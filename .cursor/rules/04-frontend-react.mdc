@@ -1,0 +1,14 @@
+---
+description: "Konvensi frontend React + Vite"
+globs: ["frontend/**/*.tsx", "frontend/**/*.ts"]
+alwaysApply: false
+---
+
+# Frontend (React + Vite)
+
+- Struktur: `src/pages/<Nama>/` untuk halaman, `src/components/ui/` untuk komponen reusable, `src/hooks/` untuk custom hook React Query per modul, `src/lib/api-client.ts` untuk wrapper fetch/axios.
+- Data fetching HANYA lewat TanStack Query (`useQuery`/`useMutation`) — jangan `useEffect` + `fetch` manual untuk server state.
+- Styling HANYA Tailwind utility classes — jangan tambah CSS-in-JS atau library styling lain.
+- Jangan tambah state management library (Redux, Zustand, dll) — React state + TanStack Query cukup untuk scope project ini.
+- Target build: static SPA (`vite build`), bukan SSR — jangan tambah Next.js atau framework SSR lain.
+- Form input transaksi: field wajib minimal (akun, kategori, nominal, tanggal), field lain opsional — ikuti prinsip UX di `docs/roadmap.md`.

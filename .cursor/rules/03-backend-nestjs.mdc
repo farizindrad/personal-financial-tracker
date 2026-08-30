@@ -1,0 +1,15 @@
+---
+description: "Konvensi backend NestJS + Prisma"
+globs: ["backend/**/*.ts"]
+alwaysApply: false
+---
+
+# Backend (NestJS + Prisma)
+
+- Struktur per modul: `src/modules/<nama>/` berisi `*.controller.ts`, `*.service.ts`, `*.module.ts`, `dto/`. Ikuti pola ini untuk modul baru (accounts, categories, transactions, budgets, savings-goals, recurring-transactions, dashboard).
+- Semua input lewat DTO dengan `class-validator` (`@IsNotEmpty`, `@IsNumber`, dll) — jangan terima `any`/objek mentah dari body.
+- Akses DB HANYA lewat `PrismaService` (`src/prisma/prisma.service.ts`), jangan instansiasi `PrismaClient` baru di tempat lain.
+- Transaksi transfer wajib divalidasi: `type: 'transfer'` harus punya `transferToAccountId` terisi.
+- Recurring transaction: generate baris transaksi aktual lewat cron di `src/scheduler/recurring.scheduler.ts` (pakai `@nestjs/schedule`), bukan endpoint manual per hari.
+- Mode demo: cron reset data (`IS_DEMO=true`) juga di `src/scheduler/`, jangan bikin service/container terpisah.
+- Lihat `.cursor/rules/01-no-n-plus-one.mdc` untuk aturan query — berlaku di semua service.

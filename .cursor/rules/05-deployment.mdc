@@ -1,0 +1,16 @@
+---
+description: "Aturan deployment dan konfigurasi Docker di VPS existing"
+globs: ["Dockerfile", "docker-compose.yml"]
+alwaysApply: false
+---
+
+# Deployment
+
+- VPS sudah punya container lain berjalan (`production_mysql`/`mysql-db`, `nginx_proxy_manager`, app lain). JANGAN bikin container MySQL baru — pakai database baru di container MySQL yang sudah ada.
+- Host database dari dalam container: `mysql-db` (alias `production_mysql`), network eksternal `main-apps-network` — bukan `localhost`.
+- Satu container per instance (backend serve frontend static lewat `ServeStaticModule`), bukan container terpisah untuk frontend dan backend.
+- Dua instance terpisah: `finance-app` (privat, jangan di-link publik) dan `finance-app-demo` (`IS_DEMO=true`, di-link di portfolio).
+- Port bind ke `127.0.0.1` saja, expose ke publik lewat Nginx Proxy Manager (bukan bind `0.0.0.0` langsung).
+- `mem_limit` wajib di-set eksplisit di setiap service compose.
+- `Dockerfile` wajib multi-stage: stage `builder` compile, stage `runner` cuma copy hasil build — lihat `.cursor/rules/02-secrets-public-repo.mdc` soal credential.
+- Untuk dev lokal (Windows, tanpa Docker), pakai MySQL native — lihat `docs/development.md`. Jangan connect ke database production dari mesin development.

@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+!.env.local.example
+node_modules
+.git
+*.md
+docs
+graphify-out

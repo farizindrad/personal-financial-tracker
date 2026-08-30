@@ -1,0 +1,12 @@
+---
+description: "Aturan wajib menghindari N+1 query di seluruh backend"
+alwaysApply: true
+---
+
+# Anti N+1 query (wajib, cek setiap kali menulis kode akses DB)
+
+- Jangan pernah query di dalam loop. Butuh relasi untuk banyak baris → pakai `include`/`select` Prisma di query awal.
+- List endpoint wajib eager-load relasi yang ditampilkan dalam satu query (mis. `include: { account: true, category: true }`).
+- Agregasi (total saldo, ringkasan bulanan, realisasi budget) pakai `groupBy`/`aggregate` Prisma atau raw query ke view (`v_account_balances`, `v_monthly_summary`) — jangan hitung di aplikasi dengan loop per baris.
+- Semua list endpoint wajib dipaginasi (`take`/`skip`), jangan `findMany()` tanpa limit.
+- Dashboard summary = 1 request ke backend, backend gabungkan beberapa query lewat `Promise.all` — bukan frontend memanggil banyak endpoint lalu memproses sendiri.

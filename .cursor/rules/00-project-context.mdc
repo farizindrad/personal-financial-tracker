@@ -1,0 +1,15 @@
+---
+description: "Konteks project dan tech stack Personal Finance Tracker"
+alwaysApply: true
+---
+
+# Personal Finance Tracker
+
+Aplikasi pencatatan keuangan pribadi, single user (tanpa auth multi-user).
+Input transaksi manual, kategori fleksibel/custom, dashboard saldo & cash flow.
+
+**Stack**: NestJS + Prisma + MySQL (backend), React + Vite + TanStack Query + Tailwind (frontend, di-build jadi static file, di-serve oleh NestJS lewat `ServeStaticModule`).
+
+**Scope sekarang**: Fase 1 (akun, kategori, transaksi, dashboard) + Fase 2 (budget, savings goal, recurring transaction). JANGAN implementasikan Fase 3 (import CSV, lampiran foto, multi-currency, tag bebas) — itu next improvement, di luar scope saat ini.
+
+Detail: `docs/roadmap.md` (produk), `docs/architecture.md` (teknis), `docs/development.md` (setup lokal). Skema database kanonik: `backend/prisma/schema.prisma` — jangan bikin tabel lewat SQL dump manual.
