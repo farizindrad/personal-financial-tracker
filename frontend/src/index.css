@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Outfit", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  --color-ink: #1f2328;
+  --color-ink-soft: #33383f;
+  --color-paper: #ffffff;
+  --color-paper-deep: #f6f8fa;
+  --color-mist: #57606a;
+  --color-hazard: #d1242f;
+  --color-brand: #1a73e8;
+  --color-brand-deep: #1557b0;
+  --color-brand-soft: #e8f0fe;
+  --color-mint: #188038;
+  --color-mint-soft: #e6f4ea;
+  /* Legacy aliases → clean mapping */
+  --color-moss: #1f2328;
+  --color-moss-bright: #1a73e8;
+  --color-clay: #d1242f;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply m-0 min-h-screen bg-paper-deep font-sans text-ink;
+  }
+
+  #root {
+    @apply relative min-h-screen w-full max-w-full overflow-x-hidden;
+  }
+
+  * {
+    border-radius: 0.375rem;
+  }
+
+  ::selection {
+    @apply bg-brand-soft text-brand-deep;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .label-meta {
+    @apply font-sans text-[0.75rem] font-medium tracking-wide text-mist;
+  }
+
+  .field {
+    @apply w-full border border-mist/25 bg-white px-3 py-2.5 text-sm text-ink shadow-xs outline-none transition-all placeholder:text-mist/50 focus:border-brand focus:ring-4 focus:ring-brand/15;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-xs transition-all hover:bg-brand-deep hover:shadow-sm active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-mist/25 bg-white px-4 py-2 text-sm font-semibold text-ink transition-all hover:bg-paper-deep active:scale-[0.98] disabled:opacity-40;
+  }
+
+  .btn-hazard {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hazard/30 bg-hazard/5 px-4 py-2 text-sm font-semibold text-hazard transition-all hover:bg-hazard hover:text-white active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-chip {
+    @apply inline-flex min-h-9 items-center justify-center rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-[0.98];
+  }
+
+  .btn-chip-on {
+    @apply border-brand bg-brand text-white shadow-xs;
+  }
+
+  .btn-chip-off {
+    @apply border-mist/25 bg-white text-ink/70 hover:bg-paper-deep;
+  }
+
+  .card {
+    @apply rounded-xl border border-mist/15 bg-white shadow-xs;
+  }
+
+  .card-ink {
+    @apply rounded-xl border border-mist/15 bg-gradient-to-br from-ink to-ink-soft text-white shadow-md;
+  }
+
+  .rule-x {
+    @apply h-0 w-full border-0 border-t border-mist/15;
+  }
+
+  .page-h1 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+    @apply text-2xl font-bold text-ink sm:text-3xl;
+  }
+
+  .amount-pos {
+    @apply font-mono font-bold text-mint tabular-nums;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .amount-neg {
+    @apply font-mono font-bold text-hazard tabular-nums;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .amount-plain {
+    @apply font-mono font-bold text-ink tabular-nums;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink/70 transition-colors hover:bg-paper-deep hover:text-ink;
+  }
+
+  .nav-link-active {
+    @apply bg-brand-soft text-brand-deep hover:bg-brand-soft hover:text-brand-deep;
+  }
+
+  /* Long numeric figures (Rp1.234.567.890) must wrap, never overflow their card */
+  [class~="tabular-nums"] {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

@@ -1,0 +1,35 @@
+services:
+  finance-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-app
+    restart: unless-stopped
+    mem_limit: 300m
+    env_file:
+      - .env.production   # tidak di-commit ke git, lihat .env.example
+    ports:
+      - "127.0.0.1:3300:3000"
+    networks:
+      - mysql_shared
+
+  finance-app-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-app-demo
+    restart: unless-stopped
+    mem_limit: 300m
+    env_file:
+      - .env.demo          # tidak di-commit ke git, lihat .env.example
+    environment:
+      IS_DEMO: "true"
+    ports:
+      - "127.0.0.1:3301:3000"
+    networks:
+      - mysql_shared
+
+networks:
+  mysql_shared:
+    external: true
+    name: main-apps-network
