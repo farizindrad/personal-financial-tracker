@@ -15,6 +15,7 @@ import { AUTH_COOKIE } from './auth.guard';
 import { CurrentUser, Public } from './auth.decorators';
 import type { AuthUser } from './auth.decorators';
 import { isDemoMode } from '../../common/throttler.config';
+import { resolveDemoEmail } from '../../seed/demo-seed';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -38,9 +39,7 @@ export class AuthController {
   getConfig() {
     return {
       demo: isDemoMode(this.config),
-      demoEmail: isDemoMode(this.config)
-        ? (this.config.get<string>('DEMO_EMAIL') ?? 'demo@ledger.app')
-        : null,
+      demoEmail: isDemoMode(this.config) ? resolveDemoEmail() : null,
     };
   }
 

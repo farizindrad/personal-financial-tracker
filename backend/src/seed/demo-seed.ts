@@ -9,9 +9,19 @@ import {
 } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
-export const DEMO_EMAIL = 'demo@ledger.app';
-export const DEMO_PASSWORD = 'demo1234';
-export const DEMO_NAME = 'Demo User';
+const FALLBACK_DEMO_EMAIL = 'demo@ledger.app';
+
+export function resolveDemoEmail(): string {
+  return process.env.DEMO_EMAIL?.trim() || FALLBACK_DEMO_EMAIL;
+}
+
+export function resolveDemoPassword(): string {
+  return process.env.DEMO_PASSWORD?.trim() || 'demo1234';
+}
+
+export const DEMO_EMAIL = resolveDemoEmail();
+export const DEMO_PASSWORD = resolveDemoPassword();
+export const DEMO_NAME = process.env.DEMO_NAME?.trim() || 'Demo User';
 
 /**
  * Seed data demo yang kaya (transaksi tersebar di bulan berjalan).
@@ -20,14 +30,12 @@ export const DEMO_NAME = 'Demo User';
  */
 export async function seedDemoData(
   prisma: PrismaClient,
-  email: string = DEMO_EMAIL,
-  password: string = DEMO_PASSWORD,
+  email: string = resolveDemoEmail(),
+  password: string = resolveDemoPassword(),
   name: string = DEMO_NAME,
 ): Promise<number> {
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    await prisma.user.delete({ where: { id: existing.id } });
-  }
+  const leftover = [...new Set([email, FALLBACK_DEMO_EMAIL])];
+  await prisma.user.deleteMany({ where: { email: { in: leftover } } });
 
   const user = await prisma.user.create({
     data: { email, passwordHash: await hash(password, 10), name },

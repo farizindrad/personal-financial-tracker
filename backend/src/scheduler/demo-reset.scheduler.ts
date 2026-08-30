@@ -29,7 +29,10 @@ export class DemoResetScheduler {
     }
     this.logger.log('Demo reset job running...');
     try {
-      await seedDemoData(this.prisma);
+      await seedDemoData(
+        this.prisma,
+        this.config.get<string>('DEMO_EMAIL')?.trim() || undefined,
+      );
       this.logger.log('Demo data reseeded');
     } catch (error) {
       this.logger.error('Demo reset failed', error);
