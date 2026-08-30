@@ -83,7 +83,7 @@ export async function seedDemoData(
       },
       {
         userId,
-        name: 'Mandiri',
+        name: 'BRI',
         type: AccountType.bank,
         initialBalance: 2_000_000,
       },
@@ -97,7 +97,7 @@ export async function seedDemoData(
     ],
   });
 
-  const [bca, mandiri, gopay, cash] = await prisma.account.findMany({
+  const [bca, bri, gopay, cash] = await prisma.account.findMany({
     where: { userId },
     orderBy: { id: 'asc' },
   });
@@ -301,7 +301,7 @@ export async function seedDemoData(
     },
     {
       userId,
-      accountId: mandiri.id,
+      accountId: bri.id,
       categoryId: internet.id,
       type: 'expense',
       amount: 320_000,
@@ -355,7 +355,7 @@ export async function seedDemoData(
     },
     {
       userId,
-      accountId: mandiri.id,
+      accountId: bri.id,
       categoryId: makanDiLuar.id,
       type: 'expense',
       amount: 210_000,
@@ -463,7 +463,7 @@ export async function seedDemoData(
       },
       {
         userId,
-        accountId: mandiri.id,
+        accountId: bri.id,
         categoryId: internet.id,
         type: 'expense',
         amount: 320_000,
@@ -493,7 +493,7 @@ export async function seedDemoData(
         userId,
         name: 'Dana Darurat',
         targetAmount: 50_000_000,
-        accountId: mandiri.id,
+        accountId: bri.id,
         targetDate: date(1),
       },
       {
