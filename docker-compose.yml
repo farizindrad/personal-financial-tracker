@@ -8,8 +8,10 @@ services:
     mem_limit: 300m
     env_file:
       - .env.production   # tidak di-commit ke git, lihat .env.example
+    # Default localhost (aman). Tailnet: file `.env` di folder ini (gitignore)
+    # PRIVATE_BIND=<hasil `tailscale ip -4`> lalu recreate. Jangan 0.0.0.0 tanpa firewall.
     ports:
-      - "127.0.0.1:3300:3000"
+      - "${PRIVATE_BIND:-127.0.0.1}:3300:3000"
     networks:
       - mysql_shared
 
