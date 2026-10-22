@@ -1,0 +1,13 @@
+[Unit]
+Description=Ledger MySQL backup
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ledger-backup
+WorkingDirectory=/opt/ledger/backend
+EnvironmentFile=/etc/ledger/backup.env
+ExecStart=/usr/bin/node scripts/backup-db.cjs
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
