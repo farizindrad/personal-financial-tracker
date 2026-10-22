@@ -1,6 +1,6 @@
 # Ledger — Task Checklist
 
-Updated: 2026-10-22. All tasks below are planned, not implemented by this documentation change.
+Updated: 2026-10-22. Phase 1 (T01-T08) delivered and verified below; Phase 2 onward remains planned.
 
 See [plan.md](plan.md) for command codes (BF/BU/BB/BL/FB/FL/API/WEB), phase dependencies, risk controls and execution rules; [roadmap](../docs/roadmap.md) for product context. Verification bullets are required work, not claims of passing checks. Paths marked `(new)` are proposed. S = 1–2 implementation files; M = 3–5. Split further if actual scope exceeds five files. Record check output/date and commit next to each completed task.
 
@@ -11,8 +11,8 @@ See [plan.md](plan.md) for command codes (BF/BU/BB/BL/FB/FL/API/WEB), phase depe
 Clear/partition cached data at authentication transitions and prevent late requests from restoring the previous user's data.
 
 **Acceptance:**
-- [ ] Switching A → logout → B shows only B's data, including when A's requests finish late.
-- [ ] Logout/session expiry removes financial cache; login still loads the correct account.
+- [x] Switching A → logout → B shows only B's data, including when A's requests finish late.
+- [x] Logout/session expiry removes financial cache; login still loads the correct account.
 
 **Verification:** WEB account-switch/late-response regression (runner added by T10; until then document a browser reproduction); FB/FL.
 **Dependencies:** None. **Scope:** M.
@@ -23,8 +23,8 @@ Clear/partition cached data at authentication transitions and prevent late reque
 Return a successful response after removing an owned transaction without reading the deleted record again.
 
 **Acceptance:**
-- [ ] Owned deletion returns the documented success response and the row is absent.
-- [ ] Missing/other-user IDs return not-found without modifying another user's data; UI refreshes on success.
+- [x] Owned deletion returns the documented success response and the row is absent.
+- [x] Missing/other-user IDs return not-found without modifying another user's data; UI refreshes on success.
 
 **Verification:** BF `transactions`; BB/BL; delete through UI and compare list/dashboard balances.
 **Dependencies:** None. **Scope:** S.
@@ -35,8 +35,8 @@ Return a successful response after removing an owned transaction without reading
 Update invalidation for transaction mutations and account changes that affect goal progress or summaries.
 
 **Acceptance:**
-- [ ] Create/edit/delete/transfer refresh relevant accounts, dashboard, budgets and savings goals.
-- [ ] Editing an account's initial balance refreshes linked goal progress without a page reload.
+- [x] Create/edit/delete/transfer refresh relevant accounts, dashboard, budgets and savings goals.
+- [x] Editing an account's initial balance refreshes linked goal progress without a page reload.
 
 **Verification:** Browser scenarios with previously cached budget/goal pages; FB/FL. Add scenarios to WEB when T10 exists.
 **Dependencies:** T01, T02. **Scope:** M.
@@ -44,16 +44,16 @@ Update invalidation for transaction mutations and account changes that affect go
 
 ### Checkpoint C1 — T01–T03
 
-- [ ] Relevant tests, builds and lint pass; verify A/B switching and transaction mutation refresh.
-- [ ] Record evidence and review risks before continuing; commit each verified slice separately.
+- [x] Relevant tests, builds and lint pass; verify A/B switching and transaction mutation refresh.
+- [x] Record evidence and review risks before continuing; commit each verified slice separately.
 
 ### T04: Compute full-period budget totals
 
 Provide a server aggregate so monthly totals do not depend on list page size.
 
 **Acceptance:**
-- [ ] With more than 20 budgets, changing page leaves period totals unchanged; dashboard totals cover more than 50 budgets too.
-- [ ] Totals reconcile with all matching owned budgets/expenses, including empty and over-budget periods.
+- [x] With more than 20 budgets, changing page leaves period totals unchanged; dashboard totals cover more than 50 budgets too.
+- [x] Totals reconcile with all matching owned budgets/expenses, including empty and over-budget periods.
 
 **Verification:** BF `budgets`; BB/BL, FB/FL; fixture spanning at least three pages.
 **Dependencies:** None. **Scope:** M.
@@ -64,8 +64,8 @@ Provide a server aggregate so monthly totals do not depend on list page size.
 Distinguish loading/errors from genuine zero values and preserve the clicked calendar date.
 
 **Acceptance:**
-- [ ] Failed budget/goal/calendar requests show a retry state instead of a misleading zero or empty result.
-- [ ] Selecting a dashboard day opens that date's transactions; the mini calendar aligns with weekdays.
+- [x] Failed budget/goal/calendar requests show a retry state instead of a misleading zero or empty result.
+- [x] Selecting a dashboard day opens that date's transactions; the mini calendar aligns with weekdays.
 
 **Verification:** WEB request failure, retry and date-link scenarios; FB/FL.
 **Dependencies:** T04. **Scope:** M.
@@ -76,8 +76,8 @@ Distinguish loading/errors from genuine zero values and preserve the clicked cal
 Enforce the documented two-level category structure at the API boundary.
 
 **Acceptance:**
-- [ ] Moving a parent with children cannot create a third level or a cycle.
-- [ ] Valid child moves work; another user's category cannot be used as a parent.
+- [x] Moving a parent with children cannot create a third level or a cycle.
+- [x] Valid child moves work; another user's category cannot be used as a parent.
 
 **Verification:** BF `categories`; BB/BL; inspect returned tree after valid and invalid API moves.
 **Dependencies:** None. **Scope:** S.
@@ -85,16 +85,16 @@ Enforce the documented two-level category structure at the API boundary.
 
 ### Checkpoint C2 — T04–T06
 
-- [ ] Verify totals across pages, widget failure states and category moves with affected checks passing.
-- [ ] Record evidence and review risks; no unchecked acceptance item is treated as done.
+- [x] Verify totals across pages, widget failure states and category moves with affected checks passing.
+- [x] Record evidence and review risks; no unchecked acceptance item is treated as done.
 
 ### T07: Harden session-cookie transport settings
 
 Use secure cookie settings for HTTPS production while retaining explicit local development support.
 
 **Acceptance:**
-- [ ] Production login/register use Secure and HttpOnly cookies; local HTTP works under documented configuration.
-- [ ] Logout clears the same cookie scope; cookie/JWT lifetime settings are consistent and documented.
+- [x] Production login/register use Secure and HttpOnly cookies; local HTTP works under documented configuration.
+- [x] Logout clears the same cookie scope; cookie/JWT lifetime settings are consistent and documented.
 
 **Verification:** New auth-controller tests plus BU/BB/BL; inspect Set-Cookie under local and production-like configurations.
 **Dependencies:** T01. **Scope:** M.
@@ -105,8 +105,8 @@ Use secure cookie settings for HTTPS production while retaining explicit local d
 Reproduce the incomplete frontend build and fix actual causes; resolve known lint failures without lowering checks.
 
 **Acceptance:**
-- [ ] Frontend and backend build commands complete in the documented supported environment, or a concrete blocker remains explicitly open.
-- [ ] Lint has no errors; the seed formatting error is fixed and existing refresh-export warnings are resolved or recorded separately without suppressing rules.
+- [x] Frontend and backend build commands complete in the documented supported environment, or a concrete blocker remains explicitly open.
+- [x] Lint has no errors; the seed formatting error is fixed and existing refresh-export warnings are resolved or recorded separately without suppressing rules.
 
 **Verification:** BU/BB/BL/FB/FL; record duration, environment and exact results.
 **Dependencies:** None. **Scope:** M, investigation first.
@@ -114,8 +114,8 @@ Reproduce the incomplete frontend build and fix actual causes; resolve known lin
 
 ### Checkpoint C3 — Phase 1 exit
 
-- [ ] T01–T08 acceptance/evidence complete; run phase-exit checks from plan.md.
-- [ ] Demonstrate isolation, delete success, full-period totals and secure-cookie configuration; review remaining risks.
+- [x] T01–T08 acceptance/evidence complete; run phase-exit checks from plan.md.
+- [x] Demonstrate isolation, delete success, full-period totals and secure-cookie configuration; review remaining risks.
 
 ## Phase 2 — Verification and operations
 
@@ -135,7 +135,7 @@ Extend health-only E2E coverage using a dedicated disposable test database and c
 
 ### T10: Add critical browser regression flows
 
-Establish a browser runner against isolated fixture data and document its exact command.
+Reuse the Playwright/Chrome fixture runner established in Phase 1 and extend it to database-backed fixtures from T09. The Phase 1 suite does not complete this full-stack task.
 
 **Acceptance:**
 - [ ] Account → transaction → dashboard and budget/goal refresh flows pass, including errors and deletion.
@@ -666,3 +666,27 @@ These tasks deliver adopt/defer decisions, not the listed features. If adopted, 
 ## Execution evidence
 
 For each implemented task, append: `Task ID | date | commands/scenarios | results | commit | remaining risk`. A task is complete only when its acceptance and verification pass. Failed or unrun checks remain explicit. The 2026-10-22 audit snapshot is historical context, not verification for future changes.
+
+### Phase 1 evidence - 2026-10-22
+
+| Task | Implemented outcome and evidence | Commit |
+|---|---|---|
+| T01 | Fresh cache per session, aborted/late responses rejected, local expiry on protected 401. Three failing cases became green; four auth unit cases pass. Chrome account-switch fixture passes. ADR-001 records offline/cancellation limits. | aa21d61 |
+| T02 | Owner-scoped deletion succeeds without a post-delete read; missing/unowned rows return not-found. Reproduction failed before the fix; regression and Chrome delete/form-close/list-refresh pass. | 716eda4 |
+| T03 | Financial mutations invalidate budget/goal dependencies. Five initially failing cache-state regressions now pass. | 90f9ada |
+| T04 | Typed summary computes full-period decimal totals, including empty/over-budget periods. Two failing cases became green; 61-budget pagination fixture and Chrome totals check pass. | bcb043f |
+| T05 | Widget pending/error/retry states, aligned mini calendar and date-aware links. Chrome error-state/selected-date checks pass; mobile screenshot inspected. | a14c606 |
+| T06 | Rejects reparenting categories with children, cycles and foreign parents; permits a valid leaf move. Six category cases pass after regression and test-fixture isolation fixes. | a001959 |
+| T07 | Secure production cookie, validated shared TTL, matching logout scope; nine cookie/controller cases pass (eight failed before implementation). Configuration and API docs updated. | 29b4386 |
+| T08 | Seed formatting corrected; both builds and lint verified. Frontend tooling and compatible dependency updates recorded; audit reported zero vulnerabilities. | c6a0e71, 3cff988 |
+
+Final verification on Node 24.21.0 / Windows:
+
+- Backend: npm.cmd test -- --runInBand: 39 tests in 11 suites passed; npm.cmd run build passed; read-only ESLint over src/test passed with zero errors/warnings.
+- Frontend: npm.cmd test: 9 tests in two suites passed; npm.cmd run build passed (49.05 seconds for the recorded Vite bundle step); npm.cmd run lint passed with zero errors and six existing Fast Refresh warnings.
+- Browser: npm.cmd run test:browser: six Chrome fixture scenarios passed (1.4 minutes). Covers user switching, constant budget totals, delete UI, failed widgets, chosen calendar date and mobile navigation. Fixtures touch no database. On this managed Windows environment the runner needs permission to start/stop its own processes; the final authorized run exited cleanly.
+- Frontend npm.cmd audit fix applied compatible patches and reported zero vulnerabilities. This is not a backend dependency audit or a production security sign-off.
+- The >500 kB frontend chunk warning remains; no rule, threshold or test was suppressed. The earlier interrupted build was not proof of a source compile error.
+- C1/C2/C3 evidence reviewed locally: old/failing behavior reproduced, fixes/scope inspected, affected suites/build/lint passed. Deployment and live database verification were not performed; T09-T14 remain open.
+- API contracts: existing data/meta unchanged; additive budget summary, delete 204/404 behavior, cookie transport/lifetime and retry semantics documented in api-reference.md.
+- Existing README, design and typography worktree changes were preserved and excluded from these commits. Browser fixtures: f4d4f02; planning baseline: 5a2266b.

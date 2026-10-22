@@ -142,6 +142,7 @@ Clean GCP/Notion-style app shell (`AppLayout.tsx`, `AppNav.tsx`):
 
 - `AuthProvider` (`src/lib/auth.tsx`) bootstraps `GET /auth/config` (feature flags incl. demo mode) and `GET /auth/me` on load; `401` → unauthenticated.
 - `RequireAuth` wraps the whole app shell; unauthenticated visits redirect to `/login`.
+- `AuthProvider` owns a fresh React Query client at session boundaries, clears the old cache and rejects late API responses. Protected API `401` expires the local session. See [ADR-001](decisions/001-session-cache-isolation.md) for cancellation and offline logout limits.
 - `Login`/`Register` pages are public; register is hidden when `config.demo`. In demo mode a button fills the public demo credentials.
 - The API client sends `credentials: 'same-origin'` so the HttpOnly cookie rides along.
 

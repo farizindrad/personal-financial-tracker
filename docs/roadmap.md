@@ -8,7 +8,7 @@ The app evolves from an MVP (single user, local) into a proper web application: 
 
 ## Target user
 
-Primarily the owner, with email/password authentication and per-user API scoping implemented. Browser cache isolation and cross-user regression tests still need work before treating multi-user readiness as verified. A public demo configuration (`finance-app-demo`) supports auto-resetting seed data.
+Primarily the owner, with email/password authentication, per-user API scoping and browser session-cache isolation implemented. Full database-backed cross-user E2E remains Phase 2 work before treating production multi-user readiness as verified. A public demo configuration (`finance-app-demo`) supports auto-resetting seed data.
 
 ## Product principles
 
@@ -23,22 +23,28 @@ The MVP scope has implementations, but this is not a production-readiness sign-o
 
 | Area | Implemented scope | Remaining work |
 |---|---|---|
-| Accounts | Wallet CRUD and live computed balances | Regression coverage and dependent-cache refresh |
-| Categories | Custom categories, two-level hierarchy, soft-delete | Enforce hierarchy when moving an existing parent |
-| Transactions | Income, expense, transfers, filters, pagination | Delete response and dependent-cache correctness |
-| Dashboard and calendar | Monthly summary, recent activity, daily/month/week views | Accurate aggregate widgets, reports and trends |
-| Budget | Monthly category limits, realization, over-budget UI | Totals across pages, fresh data, notifications |
-| Savings goals | Progress from linked account balance | Fresh data; contribution allocation is future scope |
+| Accounts | Wallet CRUD, live balances and dependent-cache refresh | Database-backed regression coverage |
+| Categories | Two-level hierarchy, soft-delete, parent-move validation | Database concurrency/integration coverage |
+| Transactions | Income/expense/transfers, filters, pagination, correct delete response | Expanded database E2E |
+| Dashboard and calendar | Monthly summary, honest widget states, date-aware calendar links | Reports and trends |
+| Budget | Monthly limits, full-period totals, realization and fresh cache | Notifications |
+| Savings goals | Linked-account progress and dependent-cache refresh | Contribution allocation is future scope |
 | Assets/liabilities | CRUD and net worth | Critical-flow regression coverage |
-| Auth | Registration/login, JWT HttpOnly cookie, per-user API queries | Browser cache isolation, production cookie hardening, isolation tests |
+| Auth | Registration/login, isolated browser cache, production Secure cookies, aligned expiry | Full database-backed ownership/session E2E |
 | Recurring | Template API and daily scheduler | Date rules, duplicate protection, pause/resume semantics, management UI |
 | Demo and shell | Demo reset implementation; responsive grouped navigation | Runtime verification, accessibility and operational checks |
 
 Verification snapshot (not an ongoing guarantee): backend build passed; 10 unit suites / 21 tests passed; frontend lint had 0 errors and 6 refresh-export warnings; backend lint had one Prettier error in `src/seed/demo-seed.ts`. Frontend build was stopped after several minutes without a result, so it remains unverified. Existing E2E only covers `/api/health`.
 
+### Phase 1 delivery — 2026-10-22
+
+T01–T08 implemented on `fix/phase-1-financial-correctness`, with separate commits and acceptance evidence in [todo.md](../tasks/todo.md#execution-evidence). Backend: 39 tests / 11 suites, build and read-only lint passed. Frontend: 9 unit regressions, build and lint passed (six existing Fast Refresh warnings). Six isolated Chrome fixture tests passed, covering session switching, delete UI, page-independent budget totals, widget failures, calendar date links and mobile navigation. Frontend dependency audit reported zero vulnerabilities after compatible patches. The main bundle still emits the existing >500 kB warning.
+
+The earlier snapshot above records the pre-implementation audit. This delivery does not verify production deployment or a real database; the new browser suite uses local API fixtures. Database-backed E2E, CI and backup restoration remain Phase 2. Existing unrelated worktree edits are excluded from the Phase 1 commits.
+
 ## Delivery phases
 
-This sequence supersedes the earlier three-phase grouping. Existing features remain the baseline (Phase 0); all new tasks are unchecked. Product direction lives here; execution decisions and dependencies live in [tasks/plan.md](../tasks/plan.md), and completion evidence belongs in [tasks/todo.md](../tasks/todo.md). Task IDs are shared across all three documents.
+This sequence supersedes the earlier three-phase grouping. Existing features remain the baseline (Phase 0); Phase 1 is checked as delivered, with later phases still open. Product direction lives here; execution decisions and dependencies live in [tasks/plan.md](../tasks/plan.md), and completion evidence belongs in [tasks/todo.md](../tasks/todo.md). Task IDs are shared across all three documents.
 
 ### Phase 0 — Existing MVP baseline
 
@@ -51,14 +57,14 @@ Known defects are tracked in later phases; checked items above mean implementati
 
 ### Phase 1 — Data correctness and user isolation (T01–T08)
 
-- [ ] T01: Isolate financial query cache across login/logout and in-flight requests
-- [ ] T02: Return success after deleting an owned transaction; preserve other users' data
-- [ ] T03: Refresh budget and savings progress after transactions or account-balance changes
-- [ ] T04: Calculate monthly budget totals across the full dataset, not the current page
-- [ ] T05: Show widget loading/errors honestly and link dashboard calendar dates correctly
-- [ ] T06: Enforce the two-level category hierarchy on parent changes
-- [ ] T07: Set secure production session-cookie behavior with local HTTP support
-- [ ] T08: Restore a reproducible frontend build and clean lint baseline without weakening checks
+- [x] T01: Isolate financial query cache across login/logout and in-flight requests
+- [x] T02: Return success after deleting an owned transaction; preserve other users' data
+- [x] T03: Refresh budget and savings progress after transactions or account-balance changes
+- [x] T04: Calculate monthly budget totals across the full dataset, not the current page
+- [x] T05: Show widget loading/errors honestly and link dashboard calendar dates correctly
+- [x] T06: Enforce the two-level category hierarchy on parent changes
+- [x] T07: Set secure production session-cookie behavior with local HTTP support
+- [x] T08: Restore a reproducible frontend build and clean lint baseline without weakening checks
 
 Exit: account switching shows no previous-user data; create/edit/delete/transfer and monthly totals pass regression checks; affected builds and lint pass.
 

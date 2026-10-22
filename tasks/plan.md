@@ -1,6 +1,6 @@
 # Ledger — Implementation Plan
 
-Updated: 2026-10-22. Status: planned; feature implementation has not started under this plan.
+Updated: 2026-10-22. Status: Phase 1 delivered with recorded evidence; Phase 2 is next. Later phases remain planned.
 
 ## Overview
 
@@ -12,7 +12,7 @@ Turn the existing finance MVP into a reliable daily application in small verifie
 - Accounts, transactions, category hierarchy, dashboard/calendar, budgets, savings, assets/liabilities and auth have implementations. Recurring currently has an API/scheduler only.
 - Audit snapshot: backend build and 21 unit tests in 10 suites passed; frontend lint had six warnings; backend lint had one Prettier error; frontend build did not complete before being stopped. Browser flows, backup restoration and deployed state remain unverified.
 - Source findings are candidates for reproducible regression tests, not evidence that the deployed application has been exercised.
-- This delivery changes planning documents only. Existing uncommitted application/design edits are outside its scope.
+- The initial delivery created planning documents. Phase 1 now implements T01–T08; see todo.md for test/build evidence and commit IDs. Existing unrelated application/design edits remain outside these commits.
 
 ## Architecture and execution decisions
 
