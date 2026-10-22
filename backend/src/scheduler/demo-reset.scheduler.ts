@@ -4,6 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { isDemoMode } from '../common/throttler.config';
 import { PrismaService } from '../prisma/prisma.service';
 import { seedDemoData } from '../seed/demo-seed';
+import { runScheduledJob } from './job-logging';
 
 /** Default: once a day at 00:00 (see Cron `timeZone`). Override with DEMO_RESET_CRON. */
 const demoResetCron =
@@ -27,15 +28,11 @@ export class DemoResetScheduler {
     if (!isDemoMode(this.config)) {
       return;
     }
-    this.logger.log('Demo reset job running...');
-    try {
+    await runScheduledJob(this.logger, 'demo_reset', async () => {
       await seedDemoData(
         this.prisma,
         this.config.get<string>('DEMO_EMAIL')?.trim() || undefined,
       );
-      this.logger.log('Demo data reseeded');
-    } catch (error) {
-      this.logger.error('Demo reset failed', error);
-    }
+    });
   }
 }

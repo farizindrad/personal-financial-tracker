@@ -1,4 +1,9 @@
-import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
@@ -55,5 +60,20 @@ describe('AllExceptionsFilter', () => {
         error: 'Conflict',
       }),
     );
+  });
+
+  it('does not log exception messages, stacks or raw query values', () => {
+    const output = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    const { host } = mockHost('/accounts?token=private-query');
+    filter.catch(
+      new Error('private-description-and-database-credentials'),
+      host,
+    );
+    const logged = JSON.stringify(output.mock.calls);
+    expect(logged).not.toContain('private-query');
+    expect(logged).not.toContain('private-description');
+    output.mockRestore();
   });
 });

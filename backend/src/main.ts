@@ -1,28 +1,18 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import cookieParser from 'cookie-parser';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { configureApp } from './configure-app';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: new ConsoleLogger({ json: true }),
+  });
 
-  app.setGlobalPrefix('api');
-  app.use(cookieParser());
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-  app.useGlobalFilters(new AllExceptionsFilter());
+  configureApp(app);
 
   // SPA fallback: non-API GET tanpa ekstensi file → index.html (React Router)
   const indexHtml = join(process.cwd(), 'public', 'index.html');

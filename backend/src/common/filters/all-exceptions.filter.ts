@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
+import { routeLabel, safeErrorCode } from '../request-logging.middleware';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -21,10 +22,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const { status, message, error } = this.normalize(exception);
 
     if (status >= 500) {
-      this.logger.error(
-        `${request.method} ${request.url}`,
-        exception instanceof Error ? exception.stack : String(exception),
-      );
+      this.logger.error({
+        event: 'http_error',
+        requestId: (request as Request & { requestId?: string }).requestId,
+        method: request.method,
+        route: routeLabel(request),
+        status,
+        errorCode: safeErrorCode(exception),
+      });
     }
 
     response.status(status).json({
@@ -33,6 +38,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       error,
       timestamp: new Date().toISOString(),
       path: request.url,
+      requestId: (request as Request & { requestId?: string }).requestId,
     });
   }
 
