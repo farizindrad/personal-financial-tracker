@@ -44,7 +44,9 @@ async function deleteUsersAndOwnedRows(
   // deleteMany(users) hits P2003; wipe children first (no per-row loop).
   await prisma.transaction.deleteMany({ where: { userId: { in: ids } } });
   await prisma.budget.deleteMany({ where: { userId: { in: ids } } });
-  await prisma.recurringTransaction.deleteMany({ where: { userId: { in: ids } } });
+  await prisma.recurringTransaction.deleteMany({
+    where: { userId: { in: ids } },
+  });
   await prisma.savingsGoal.deleteMany({ where: { userId: { in: ids } } });
   await prisma.category.deleteMany({ where: { userId: { in: ids } } });
   await prisma.account.deleteMany({ where: { userId: { in: ids } } });

@@ -107,6 +107,24 @@ Vite dev server runs on `http://localhost:5173` and proxies `/api` to the backen
 | `npm run build` | Type-check + production build to `dist/` |
 | `npm run lint` | ESLint |
 | `npm run preview` | Preview the production build |
+| `npm test` | Frontend regression tests (Vitest + jsdom; Node 22.12+ required) |
+| `npm run test:browser` | Headless Chrome UI regression tests on localhost:5178 |
+
+### Phase 1 regression checks
+
+Use Node 22.12+ for the frontend test runner (verified locally with Node 24.21.0). The Vite application build remains separate from the test runner. Install dependencies from the committed lockfile with `npm ci` in each package.
+
+Browser tests use an isolated Playwright context and the installed Google Chrome channel. Install Chrome, or change the documented runner channel in a dedicated tooling change for your environment. The runner starts its own localhost Vite server on port 5178 and refuses an occupied port. It intercepts `/api` with deterministic fixtures; it does not read a real database or prove database integration. Unit tests exercise real React Query caches, auth transitions, invalidation, backend ownership filters, deletion and aggregates. Full database E2E remains Phase 2 work.
+
+Run backend `npm test -- --runInBand`, `npm run build` and `.\node_modules\.bin\eslint.cmd "{src,test}/**/*.ts"` (the last command checks without auto-fixing). In frontend run `npm test`, `npm run build`, `npm run lint` and `npm run test:browser`. Build includes type checking. Do not use the repository's backend lint command during a read-only check: it includes `--fix`.
+
+The Phase 1 frontend build now completes with Vite 6.4.5. It retains a warning about the main JS chunk exceeding 500 kB; six pre-existing React Fast Refresh export warnings are tracked rather than suppressed. These are not lint errors. A previous audit stopped a build without a result; it did not establish an application compile error. Frontend test tooling uses Vitest 5, and compatible dependency updates resolved the audit findings observed during installation.
+
+### Session transport configuration
+
+`SESSION_TTL_DAYS` is a whole number from 1 to 3650 (default 30), shared by JWT expiry and cookie max-age. Production (`NODE_ENV=production`) sets `Secure`, `HttpOnly`, `SameSite=Lax` and `Path=/`; access it through HTTPS, including when TLS terminates at a reverse proxy. Local HTTP development defaults to a non-Secure cookie. Optional `COOKIE_SECURE=true` enables Secure on local/staging HTTPS. `COOKIE_SECURE=false` is rejected in production, and invalid values fail configuration validation. Logout clears the matching cookie scope without a new lifetime.
+
+The browser clears session caches on logout even if the logout request fails. That hides local financial data but does not revoke an unreachable server session. A protected API `401` expires the local session. See [ADR-001](decisions/001-session-cache-isolation.md).
 
 ## Code conventions
 
