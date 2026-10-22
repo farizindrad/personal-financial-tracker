@@ -40,14 +40,18 @@ type ViewMode = 'month' | 'week';
 
 export function TransactionCalendar({
   onOpenInList,
+  initialDate,
 }: {
   onOpenInList?: (date: string) => void;
+  initialDate?: string;
 }) {
   const today = useMemo(() => new Date(), []);
-  const [month, setMonth] = useState(() => today.getMonth() + 1);
-  const [year, setYear] = useState(() => today.getFullYear());
+  const candidate = initialDate && /^\d{4}-\d{2}-\d{2}$/.test(initialDate) ? new Date(`${initialDate}T12:00:00`) : today;
+  const start = !Number.isNaN(candidate.getTime()) && (!initialDate || toLocalDateKey(candidate) === initialDate) ? candidate : today;
+  const [month, setMonth] = useState(() => start.getMonth() + 1);
+  const [year, setYear] = useState(() => start.getFullYear());
   const [view, setView] = useState<ViewMode>('month');
-  const [selected, setSelected] = useState<string>(() => toLocalDateKey(today));
+  const [selected, setSelected] = useState<string>(() => toLocalDateKey(start));
   const rootRef = useRef<HTMLDivElement>(null);
 
   const { data, isError, refetch, isFetching } = useDailySummary(month, year);

@@ -242,14 +242,19 @@ export function DashboardPage() {
             <div>
               <p className="label-meta">Anggaran {periodLabel}</p>
               <p className="amount-plain mt-2 text-xl md:text-2xl">
-                {budgets.data?.summary ? formatIdr(budgetRemaining) : '?'}
+                {!budgets.isError && budgets.data?.summary ? formatIdr(budgetRemaining) : '—'}
               </p>
             </div>
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-soft text-brand">
               <PiggyBank size={18} weight="bold" />
             </span>
           </div>
-          <div className="mt-4">
+          {budgets.isPending ? <p className="mt-4 text-sm text-mist">Memuat anggaran…</p> : budgets.isError || !budgets.data?.summary ? (
+            <div className="mt-4" role="status">
+              <p>Gagal memuat anggaran.</p>
+              <button type="button" className="btn-ghost mt-2" onClick={() => void budgets.refetch()}>Coba lagi</button>
+            </div>
+          ) : <div className="mt-4">
             <div className="h-2 overflow-hidden rounded-full bg-mist/15">
               <div
                 className={[
@@ -264,7 +269,7 @@ export function DashboardPage() {
                 ? `Terpakai ${formatIdr(budgetSpent)} dari ${formatIdr(budgetTotal)}`
                 : 'Belum ada anggaran bulan ini.'}
             </p>
-          </div>
+          </div>}
           <Link to="/budgets" className="btn-ghost mt-4 w-full">
             {UI.checkBudget}
           </Link>
@@ -275,14 +280,19 @@ export function DashboardPage() {
             <div>
               <p className="label-meta">Target tabungan</p>
               <p className="amount-plain mt-2 text-xl md:text-2xl">
-                {goals.data?.meta.total ?? 0}
+                {goals.isPending || goals.isError ? '—' : goals.data?.meta.total ?? 0}
               </p>
             </div>
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-mint-soft text-mint">
               <Flag size={18} weight="bold" />
             </span>
           </div>
-          {goalRows.length === 0 ? (
+          {goals.isPending ? <p className="mt-4 text-sm text-mist">Memuat target tabungan…</p> : goals.isError ? (
+            <div className="mt-4" role="status">
+              <p>Gagal memuat target tabungan.</p>
+              <button type="button" className="btn-ghost mt-2" onClick={() => void goals.refetch()}>Coba lagi</button>
+            </div>
+          ) : goalRows.length === 0 ? (
             <p className="mt-4 text-xs text-mist">Belum ada target tabungan.</p>
           ) : (
             <ul className="mt-4 space-y-3">
@@ -322,7 +332,14 @@ export function DashboardPage() {
               <CalendarBlank size={18} weight="bold" />
             </span>
           </div>
-          <div className="mt-4 grid grid-cols-7 gap-1">
+          {daily.isPending ? <p className="mt-4 text-sm text-mist">Memuat kalender…</p> : daily.isError ? (
+            <div className="mt-4" role="status">
+              <p>Gagal memuat kalender.</p>
+              <button type="button" className="btn-ghost mt-2" onClick={() => void daily.refetch()}>Coba lagi</button>
+            </div>
+          ) : <div className="mt-4 grid grid-cols-7 gap-1">
+            {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((name) => <span key={name} className="text-center text-xs text-mist">{name}</span>)}
+            {Array.from({ length: new Date(widgetYear, widgetMonth - 1, 1).getDay() }, (_, i) => <span key={`offset-${i}`} aria-hidden="true" />)}
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
               const day = dayByNum.get(d);
               const isToday = d === now.getDate() && widgetMonth === now.getMonth() + 1 && widgetYear === now.getFullYear();
@@ -334,7 +351,7 @@ export function DashboardPage() {
               return (
                 <Link
                   key={d}
-                  to="/transactions?view=calendar"
+                  to={`/transactions?view=calendar&date=${widgetYear}-${String(widgetMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`}
                   title={day ? `+${formatIdr(day.income)} / −${formatIdr(day.expense)}` : undefined}
                   className={[
                     'grid aspect-square place-items-center rounded-lg text-xs font-semibold transition-transform hover:scale-110',
@@ -346,7 +363,7 @@ export function DashboardPage() {
                 </Link>
               );
             })}
-          </div>
+          </div>}
         </article>
       </section>
 

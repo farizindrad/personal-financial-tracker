@@ -177,7 +177,7 @@ export function TransactionsPage() {
       </section>
 
       {view === 'calendar' ? (
-        <TransactionCalendar onOpenInList={openDayInList} />
+        <TransactionCalendar key={searchParams.get('date') ?? 'today'} initialDate={searchParams.get('date') ?? undefined} onOpenInList={openDayInList} />
       ) : (
       <section className="space-y-4">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
