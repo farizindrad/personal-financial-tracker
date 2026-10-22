@@ -93,6 +93,14 @@ export class CategoriesService {
       if (dto.parentId === id) {
         throw new BadRequestException('Category cannot be its own parent');
       }
+      const childCount = await this.prisma.category.count({
+        where: { userId, parentId: id },
+      });
+      if (childCount > 0) {
+        throw new BadRequestException(
+          'A category with children must remain a root category',
+        );
+      }
       await this.assertValidParent(userId, dto.parentId, existing.type);
     }
 

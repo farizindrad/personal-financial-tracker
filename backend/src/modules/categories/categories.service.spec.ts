@@ -17,7 +17,7 @@ describe('CategoriesService', () => {
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CategoriesService,
@@ -73,5 +73,80 @@ describe('CategoriesService', () => {
         parentId: 2,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects moving a parent that already has children under another root', async () => {
+    prisma.category.findFirst
+      .mockResolvedValueOnce({
+        id: 1,
+        parentId: null,
+        type: CategoryType.expense,
+      })
+      .mockResolvedValueOnce({
+        id: 3,
+        parentId: null,
+        type: CategoryType.expense,
+      });
+    prisma.category.count.mockResolvedValue(1);
+    prisma.category.findMany.mockResolvedValue([{ id: 2, parentId: 1 }]);
+    await expect(service.update(1, 1, { parentId: 3 })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(prisma.category.update).not.toHaveBeenCalled();
+  });
+
+  it('allows a leaf category to move to an owned root', async () => {
+    prisma.category.findFirst
+      .mockResolvedValueOnce({ id: 2, parentId: 1, type: CategoryType.expense })
+      .mockResolvedValueOnce({
+        id: 3,
+        parentId: null,
+        type: CategoryType.expense,
+      });
+    prisma.category.count.mockResolvedValue(0);
+    prisma.category.update.mockResolvedValue({ id: 2, parentId: 3 });
+    prisma.category.findMany.mockResolvedValue([]);
+    await expect(service.update(1, 2, { parentId: 3 })).resolves.toEqual({
+      id: 2,
+      parentId: 3,
+      children: [],
+    });
+  });
+
+  it('rejects a cycle through an existing child', async () => {
+    prisma.category.findFirst
+      .mockResolvedValueOnce({
+        id: 1,
+        parentId: null,
+        type: CategoryType.expense,
+      })
+      .mockResolvedValueOnce({
+        id: 2,
+        parentId: 1,
+        type: CategoryType.expense,
+      });
+    prisma.category.count.mockResolvedValue(1);
+    await expect(service.update(1, 1, { parentId: 2 })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(prisma.category.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects a parent not owned by the requester', async () => {
+    prisma.category.findFirst
+      .mockResolvedValueOnce({
+        id: 1,
+        parentId: null,
+        type: CategoryType.expense,
+      })
+      .mockResolvedValueOnce(null);
+    prisma.category.count.mockResolvedValue(0);
+    await expect(service.update(1, 1, { parentId: 99 })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(prisma.category.findFirst).toHaveBeenLastCalledWith({
+      where: { id: 99, userId: 1, isActive: true },
+    });
+    expect(prisma.category.update).not.toHaveBeenCalled();
   });
 });
