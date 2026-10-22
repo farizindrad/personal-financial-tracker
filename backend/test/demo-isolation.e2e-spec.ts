@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 import { DemoResetScheduler } from '../src/scheduler/demo-reset.scheduler';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { clearTestData, createTestApp } from './helpers/fixture';
@@ -16,6 +17,7 @@ describe('Rate limits and environment boundaries', () => {
     }
     process.env.IS_DEMO = 'false';
     delete process.env.TRUST_PROXY_IPS;
+    jest.restoreAllMocks();
   });
 
   it('private writes use write limits instead of the auth limiter', async () => {
@@ -101,6 +103,12 @@ describe('Rate limits and environment boundaries', () => {
   });
 
   it('demo reseeding preserves unrelated private users and accounts', async () => {
+    const consoleOutput = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+    const loggerOutput = jest
+      .spyOn(Logger.prototype, 'log')
+      .mockImplementation(() => undefined);
     app = await createTestApp();
     const prisma = app.get(PrismaService);
     const user = await prisma.user.create({
@@ -122,6 +130,12 @@ describe('Rate limits and environment boundaries', () => {
     );
     await scheduler.handleDemoReset();
     await scheduler.handleDemoReset();
+    const output = JSON.stringify([
+      ...consoleOutput.mock.calls,
+      ...loggerOutput.mock.calls,
+    ]);
+    expect(output).not.toContain(process.env.DEMO_PASSWORD);
+    expect(output).not.toContain('scheduler-demo@example.test');
     expect(
       await prisma.account.findUnique({ where: { id: account.id } }),
     ).toEqual(

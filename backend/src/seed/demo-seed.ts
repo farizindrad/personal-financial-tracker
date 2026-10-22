@@ -8,6 +8,7 @@ import {
   TransactionType,
 } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { Logger } from '@nestjs/common';
 
 const FALLBACK_DEMO_EMAIL = 'demo@ledger.app';
 
@@ -540,9 +541,12 @@ export async function seedDemoData(
     ],
   });
 
-  console.log(
-    `Seed OK — user demo: ${email} / ${password} (accounts=${accounts.count}, transactions=${transactions.length})`,
-  );
+  new Logger('DemoSeed').log({
+    event: 'demo_seed',
+    outcome: 'success',
+    accountsCreated: accounts.count,
+    transactionsCreated: transactions.length,
+  });
 
   return userId;
 }
