@@ -110,10 +110,10 @@ Modules: `auth`, `accounts`, `categories`, `transactions`, `budgets`, `savings-g
 
 ### Cross-cutting
 
-- `main.ts` — global `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`, `transform`), global exception filter, `api` global prefix, SPA fallback middleware.
+- `main.ts` — JSON logger, shared `configureApp` bootstrap and SPA fallback. `configure-app.ts` sets explicit proxy trust, correlated request logs, cookies, global validation/filter and the `api` prefix; real API tests reuse it.
 - `AuthGuard` (global) — rejects unauthenticated requests with `401`. Public routes are marked `@Public()` (health, auth flow). The request user is injected as `req.user` (JWT payload).
 - Auth cookie — JWT signed with `JWT_SECRET`, stored in an HttpOnly cookie `ledger_token`, `SESSION_TTL_DAYS` lifetime. Logout clears it.
-- `WriteThrottlerGuard` — rate-limits all endpoints that mutate data; stricter in demo mode. Auth endpoints get a tight `auth: 10/min` limiter.
+- `WriteThrottlerGuard` — rate-limits writes (private 100/min plus 25/10s; demo 20/min plus 5/10s). Only login/register get the additional auth quota (private 10/min; demo 5/min). Reads bypass this guard. Explicit proxy trust controls client identity; see [operations](operations.md).
 - `RecurringScheduler` — `@Cron(EVERY_DAY_AT_1AM)` runs `processDue()` to generate transactions whose `next_run_date` has passed (per user).
 - `DemoResetScheduler` — `@Cron` once daily at 00:00 `Asia/Jakarta` (override with `DEMO_RESET_CRON`), only active when `IS_DEMO=true`; reseeds the demo user so the public instance always has fresh data.
 

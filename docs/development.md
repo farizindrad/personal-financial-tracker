@@ -114,7 +114,7 @@ Vite dev server runs on `http://localhost:5173` and proxies `/api` to the backen
 
 Use Node 22.12+ for the frontend test runner (verified locally with Node 24.21.0). The Vite application build remains separate from the test runner. Install dependencies from the committed lockfile with `npm ci` in each package.
 
-Browser tests use an isolated Playwright context and the installed Google Chrome channel. Install Chrome, or change the documented runner channel in a dedicated tooling change for your environment. The runner starts its own localhost Vite server on port 5178 and refuses an occupied port. It intercepts `/api` with deterministic fixtures; it does not read a real database or prove database integration. Unit tests exercise real React Query caches, auth transitions, invalidation, backend ownership filters, deletion and aggregates. Full database E2E remains Phase 2 work.
+Browser tests use an isolated Playwright context and installed Google Chrome locally; CI installs Playwright Chromium. The fixture runner starts its own localhost Vite server on port 5178 and refuses an occupied port. It intercepts `/api` with deterministic fixtures; it does not read a real database or prove database integration. Unit tests exercise real React Query caches, auth transitions, invalidation, backend ownership filters, deletion and aggregates. The separate Phase 2 integration runner below verifies real MySQL/API behavior.
 
 Run backend `npm test -- --runInBand`, `npm run build` and `.\node_modules\.bin\eslint.cmd "{src,test}/**/*.ts"` (the last command checks without auto-fixing). In frontend run `npm test`, `npm run build`, `npm run lint` and `npm run test:browser`. Build includes type checking. Do not use the repository's backend lint command during a read-only check: it includes `--fix`.
 
@@ -125,6 +125,12 @@ The Phase 1 frontend build now completes with Vite 6.4.5. It retains a warning a
 `SESSION_TTL_DAYS` is a whole number from 1 to 3650 (default 30), shared by JWT expiry and cookie max-age. Production (`NODE_ENV=production`) sets `Secure`, `HttpOnly`, `SameSite=Lax` and `Path=/`; access it through HTTPS, including when TLS terminates at a reverse proxy. Local HTTP development defaults to a non-Secure cookie. Optional `COOKIE_SECURE=true` enables Secure on local/staging HTTPS. `COOKIE_SECURE=false` is rejected in production, and invalid values fail configuration validation. Logout clears the matching cookie scope without a new lifetime.
 
 The browser clears session caches on logout even if the logout request fails. That hides local financial data but does not revoke an unreachable server session. A protected API `401` expires the local session. See [ADR-001](decisions/001-session-cache-isolation.md).
+
+### Phase 2 integration and operations
+
+Use the dedicated `.env.test` protocol and commands in [operations.md](operations.md). `test:e2e` now refuses ordinary development/demo database targets. `npm run test:integration` in frontend exercises the real API/MySQL stack, while `test:browser` remains the fast fixture suite. Run the database-backed suites serially. `npm run lint:check` in backend provides a read-only lint command suitable for CI.
+
+CI, backup/restore safety, logging, proxy trust and demo/private validation are documented in the [operational runbook](operations.md) and [ADR-002](decisions/002-isolated-verification-and-backups.md). A scoped Prisma configuration dependency override is explained in [ADR-003](decisions/003-prisma-config-merge-security-override.md); generation/migrations must remain part of its verification.
 
 ## Code conventions
 

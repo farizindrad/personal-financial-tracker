@@ -13,7 +13,8 @@ REST API. Base URL is `{host}/api`. All request/response bodies are JSON.
   ```
 - Money fields use `DECIMAL(15,2)` and may serialize as strings.
 - **Auth required**: all endpoints except `/health`, `/auth/config`, `/auth/register`, `/auth/login`, `/auth/logout` require a valid session cookie `ledger_token`. Unauthenticated → `401`. All data is scoped to the authenticated user.
-- Write endpoints are rate-limited (tighter in demo mode); auth endpoints get `10 req/min` per IP.
+- **Correlation**: responses carry a server-generated `X-Request-Id`; error JSON additionally includes `requestId`. Existing error fields remain unchanged. Query strings, bodies and arbitrary exception details are excluded from request logs.
+- **Limits**: writes and login/register have separate environment-specific rate policies. A rejected request returns `429` and limiter retry headers. Read methods are currently unthrottled. Forwarded IPs are ignored unless an immediate proxy IP is explicitly trusted; see [operations](operations.md#limits-proxies-and-demo-isolation).
 
 Enums used in payloads: `AccountType = bank|cash|e_wallet|other`, `CategoryType = income|expense`, `TransactionType = income|expense|transfer`, `RecurringFrequency = daily|weekly|monthly|yearly`, `AssetType = property|vehicle|investment|gold|cash|other`, `LiabilityType = credit_card|loan|other`.
 
