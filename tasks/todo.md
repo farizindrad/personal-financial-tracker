@@ -1,6 +1,6 @@
 # Ledger — Task Checklist
 
-Updated: 2026-10-22. Phase 1 (T01-T08) delivered and verified below; Phase 2 onward remains planned.
+Updated: 2026-10-22. Phases 1?2 delivered and verified below; Phase 3 is next. Later phases remain planned.
 
 See [plan.md](plan.md) for command codes (BF/BU/BB/BL/FB/FL/API/WEB), phase dependencies, risk controls and execution rules; [roadmap](../docs/roadmap.md) for product context. Verification bullets are required work, not claims of passing checks. Paths marked `(new)` are proposed. S = 1–2 implementation files; M = 3–5. Split further if actual scope exceeds five files. Record check output/date and commit next to each completed task.
 
@@ -126,8 +126,8 @@ Phase 1 is the default prerequisite for this phase.
 Extend health-only E2E coverage using a dedicated disposable test database and cleanup procedure.
 
 **Acceptance:**
-- [ ] Fixtures verify create/edit/delete/transfer and resulting balances, budget realization, savings and net worth.
-- [ ] Two-user scenarios verify reads and mutations cannot cross ownership; tests refuse an unapproved database target.
+- [x] Fixtures verify create/edit/delete/transfer and resulting balances, budget realization, savings and net worth.
+- [x] Two-user scenarios verify reads and mutations cannot cross ownership; tests refuse an unapproved database target.
 
 **Verification:** API/BU/BB/BL; repeat on a clean isolated database and verify cleanup.
 **Dependencies:** T01–T08. **Scope:** M.
@@ -138,8 +138,8 @@ Extend health-only E2E coverage using a dedicated disposable test database and c
 Reuse the Playwright/Chrome fixture runner established in Phase 1 and extend it to database-backed fixtures from T09. The Phase 1 suite does not complete this full-stack task.
 
 **Acceptance:**
-- [ ] Account → transaction → dashboard and budget/goal refresh flows pass, including errors and deletion.
-- [ ] Account switching with cached and in-flight responses never displays the previous user's data.
+- [x] Account → transaction → dashboard and budget/goal refresh flows pass, including errors and deletion.
+- [x] Account switching with cached and in-flight responses never displays the previous user's data.
 
 **Verification:** Run the newly documented WEB command on clean fixtures; FB/FL. Preserve lockfile changes as part of the runner setup.
 **Dependencies:** T09. **Scope:** M.
@@ -150,8 +150,8 @@ Reuse the Playwright/Chrome fixture runner established in Phase 1 and extend it 
 Automate the established checks without introducing automatic deployment.
 
 **Acceptance:**
-- [ ] Push/PR runs install from lockfiles, lint, unit tests, builds/type checks and isolated API/browser tests.
-- [ ] A failing check fails the workflow; fixtures and credentials are separate from demo/private production data.
+- [x] Push/PR runs install from lockfiles, lint, unit tests, builds/type checks and isolated API/browser tests.
+- [x] A failing check fails the workflow; fixtures and credentials are separate from demo/private production data.
 
 **Verification:** Run on a branch and inspect successful checks plus a controlled failing-check run.
 **Dependencies:** T08–T10. **Scope:** M.
@@ -159,16 +159,16 @@ Automate the established checks without introducing automatic deployment.
 
 ### Checkpoint C4 — T09–T11
 
-- [ ] Critical API/browser tests and CI run reproducibly; record commands and fixture safety.
-- [ ] Review failures without weakening checks or skipping substantive scenarios.
+- [x] Critical API/browser tests and CI run reproducibly; record commands and fixture safety.
+- [x] Review failures without weakening checks or skipping substantive scenarios.
 
 ### T12: Prove MySQL backup restoration
 
 Schedule backups with retention and a restore drill into an isolated database.
 
 **Acceptance:**
-- [ ] Backup job records success/failure and documented storage/retention without committed credentials.
-- [ ] Restore preserves representative balances/transactions; runbook states recovery objectives and measured restore duration.
+- [x] Backup job records success/failure and documented storage/retention without committed credentials.
+- [x] Restore preserves representative balances/transactions; runbook states recovery objectives and measured restore duration.
 
 **Verification:** Back up a local fixture, restore into a different approved test database, reconcile totals; never restore over production during this task.
 **Dependencies:** T09. **Scope:** M.
@@ -179,8 +179,8 @@ Schedule backups with retention and a restore drill into an isolated database.
 Connect request IDs to structured errors and recurring/demo job outcomes.
 
 **Acceptance:**
-- [ ] Requests and job runs emit duration/outcome with a traceable ID and actionable errors.
-- [ ] Logs exclude cookies, passwords, tokens, transaction descriptions and financial payloads.
+- [x] Requests and job runs emit duration/outcome with a traceable ID and actionable errors.
+- [x] Logs exclude cookies, passwords, tokens, transaction descriptions and financial payloads.
 
 **Verification:** Exercise success/failure cases in local fixtures; inspect emitted logs; BU/BB/BL.
 **Dependencies:** T09. **Scope:** M.
@@ -191,8 +191,8 @@ Connect request IDs to structured errors and recurring/demo job outcomes.
 Document and test read/write/auth throttling per environment and demo reset boundaries.
 
 **Acceptance:**
-- [ ] Write/auth limits and read policy match documented environment settings and proxy identity behavior.
-- [ ] Demo reset cannot run in private mode; demo/private deployment configuration uses distinct data targets.
+- [x] Write/auth limits and read policy match documented environment settings and proxy identity behavior.
+- [x] Demo reset cannot run in private mode; demo/private deployment configuration uses distinct data targets.
 
 **Verification:** Existing throttler tests plus isolated demo-reset scenarios; BU/BB/BL; review Compose/environment examples without exposing secrets.
 **Dependencies:** T11–T13. **Scope:** M.
@@ -200,8 +200,8 @@ Document and test read/write/auth throttling per environment and demo reset boun
 
 ### Checkpoint C5 — Phase 2 exit
 
-- [ ] CI, isolated tests, restore evidence, logs and environment boundaries verified; phase-exit checks pass.
-- [ ] Review operational runbook and outstanding risks before feature expansion.
+- [x] CI, isolated tests, restore evidence, logs and environment boundaries verified; phase-exit checks pass.
+- [x] Review operational runbook and outstanding risks before feature expansion.
 
 ## Phase 3 — Complete recurring transactions
 
@@ -690,3 +690,25 @@ Final verification on Node 24.21.0 / Windows:
 - C1/C2/C3 evidence reviewed locally: old/failing behavior reproduced, fixes/scope inspected, affected suites/build/lint passed. Deployment and live database verification were not performed; T09-T14 remain open.
 - API contracts: existing data/meta unchanged; additive budget summary, delete 204/404 behavior, cookie transport/lifetime and retry semantics documented in api-reference.md.
 - Existing README, design and typography worktree changes were preserved and excluded from these commits. Browser fixtures: f4d4f02; planning baseline: 5a2266b.
+
+### Phase 2 evidence - 2026-10-22
+
+| Task | Implemented outcome and evidence | Commits |
+|---|---|---|
+| T09 | Approved loopback ledger_test_ targets only, explicit opt-in before app imports, dedicated local schema-limited user, live target check before cleanup. Real API fixtures reconcile create/edit/delete/transfer, budgets, goals, net worth and two-user ownership. All nine E2E scenarios in three suites pass. | 82881f5, 7cf654b |
+| T10 | Six Chrome fixtures and two real MySQL/API browser scenarios pass. Real flow verifies account entry, expense, cached dashboard/budget/goal refresh and deletion. A response held across A logout/B login cannot display A data. Separate-process teardown fixes Windows signal cleanup; post-run users=0 and restore objects=0. | 2d28b15, 786ca8e |
+| T11 | Pinned Actions, Node 24, lockfile installs, read-only lint, units/builds, high/critical audit gate, disposable MySQL, API/restore/browser jobs. Controlled failure run rejected exactly one deliberate assertion while all 44 ordinary units and the integration job passed. Probe removed afterward; normal run 39762203767 passed both jobs. Final demo-seed privacy fix passes local real-reset E2E and is checked again by the final branch CI. | 625a880, e1dd412, 1baecd4 |
+| T12 | Private streamed backup, checksum manifest, seven-day owned-file retention, approved empty restore target and daily systemd templates. Two final consecutive drills reconcile nine model counts, account balances and monthly-summary view; source mutation leaves restored views unchanged. Restore 1,049/976 ms; total 1,606/1,408 ms. Cleanup repetition found/fixed a leftover view. Host timer activation and production-sized RPO/RTO rehearsal remain operator steps. | edb0596 |
+| T13 | Server-generated HTTP requestId/header, additive error requestId, JSON safe route/status/duration/outcome logs and scheduler runId outcomes. Privacy regressions exclude query strings, payloads and raw exception messages/stacks. A real reset also exposed legacy seed credential output: regression failed first, then passed after replacing it with safe counts. Backend 44 units in 13 suites pass. | 0ac7fc3; final seed privacy fix |
+| T14 | Real HTTP tests reproduce/fix auth quota applying to ordinary writes and fixed login quota overriding demo settings. Spoofed IPs are ignored by default; explicit trusted proxy clients have separate buckets. Private scheduler cannot seed; two actual demo resets preserve an unrelated private fixture. Deployment validator rejects shared private/demo schema names. | 5f5bb74, 7cf654b, 1f7aac9 |
+
+Phase-exit local checks on Node 24.21.0 / MySQL 8.4 / Windows:
+
+- Backend: 44 unit tests / 13 suites; nine API E2E / three suites; ten safety tests; build and read-only lint pass. Migrations/generation pass after the scoped dependency override. Database-backed suites run serially.
+- Frontend: nine unit tests / two suites; six fixture browser tests (42.0 s); two real API/browser tests with final cleanup (47.9 s); build and lint pass. Six existing Fast Refresh warnings and the >500 kB bundle warning remain without suppressed rules.
+- Compatible backend patches plus the documented scoped deepmerge override remove high/critical audit findings; 20 moderate findings remain visible. Frontend audit reports zero. No forced ORM major migration or audit suppression. See ADR-003.
+- Test/restore credentials are ignored and absent from commits/logs/CLI arguments. CI uses a dedicated repository secret for its disposable service; private/demo/development data were not used for cleanup or restore.
+- Controlled failure evidence: https://github.com/farizindrad/personal-financial-tracker/actions/runs/39761417895 (one intentional failing assertion, 44 passing units, integration success). Normal success evidence: https://github.com/farizindrad/personal-financial-tracker/actions/runs/39762203767 (both quality/integration green at 786ca8e). The final branch CI rechecks the later seed privacy fix/documentation.
+- Runbook, API contract, ADR-002/003 and changelog updated; nine documents checked for local link targets with none broken. Diff whitespace checks pass. Existing README, design and typography work was preserved and excluded from Phase 2 commits.
+- Delivery split by target guard, request/job diagnostics, quota/proxy correction, real API fixtures, backup/restore, deployment validation, dependency/scripts, real browser harness, CI, cleanup and documentation. T09/T12/T13 exceeded their initial file estimates; coupled bootstrap/fixture/tool files were kept with their callers and separated from independent outcomes.
+- Operational boundary: no production deployment, backup timer activation, branch-protection configuration or deployed environment-file validation was performed. Templates and local evidence do not establish production recovery readiness. These operator actions are explicit in operations.md.

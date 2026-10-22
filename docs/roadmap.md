@@ -8,7 +8,7 @@ The app evolves from an MVP (single user, local) into a proper web application: 
 
 ## Target user
 
-Primarily the owner, with email/password authentication, per-user API scoping and browser session-cache isolation implemented. Full database-backed cross-user E2E remains Phase 2 work before treating production multi-user readiness as verified. A public demo configuration (`finance-app-demo`) supports auto-resetting seed data.
+Primarily the owner, with email/password authentication, per-user API scoping and browser session-cache isolation implemented. Database-backed ownership and browser account-switch flows are verified locally and in disposable CI. Production deployment and host recovery readiness remain separate checks. A public demo configuration (`finance-app-demo`) supports auto-resetting seed data.
 
 ## Product principles
 
@@ -44,7 +44,7 @@ The earlier snapshot above records the pre-implementation audit. This delivery d
 
 ## Delivery phases
 
-This sequence supersedes the earlier three-phase grouping. Existing features remain the baseline (Phase 0); Phase 1 is checked as delivered, with later phases still open. Product direction lives here; execution decisions and dependencies live in [tasks/plan.md](../tasks/plan.md), and completion evidence belongs in [tasks/todo.md](../tasks/todo.md). Task IDs are shared across all three documents.
+This sequence supersedes the earlier three-phase grouping. Existing features remain the baseline (Phase 0); Phases 1–2 are delivered within the verification boundaries below. Phase 3 is next. Product direction lives here; execution decisions and dependencies live in [tasks/plan.md](../tasks/plan.md), and completion evidence belongs in [tasks/todo.md](../tasks/todo.md). Task IDs are shared across all three documents.
 
 ### Phase 0 — Existing MVP baseline
 
@@ -70,14 +70,18 @@ Exit: account switching shows no previous-user data; create/edit/delete/transfer
 
 ### Phase 2 — Verification and operations (T09–T14)
 
-- [ ] T09: Add repeatable critical financial API integration tests with isolated test data
-- [ ] T10: Verify browser account switching and the main account → transaction → dashboard flow
-- [ ] T11: Run lint, type/build checks and tests in CI; no automatic production deployment
-- [ ] T12: Automate MySQL backups and prove restoration into an isolated database
-- [ ] T13: Add request IDs and structured request/job logs without financial payloads or secrets
-- [ ] T14: Verify environment-specific write/auth throttling and demo/private separation
+- [x] T09: Add repeatable critical financial API integration tests with isolated test data
+- [x] T10: Verify browser account switching and the main account → transaction → dashboard flow
+- [x] T11: Run lint, type/build checks and tests in CI; no automatic production deployment
+- [x] T12: Deliver backup automation/templates and prove restoration into an isolated database
+- [x] T13: Add request IDs and structured request/job logs without financial payloads or secrets
+- [x] T14: Verify environment-specific write/auth throttling and demo/private separation
 
 Exit: CI checks run; cross-user and critical browser flows pass; restore evidence and an operational runbook exist. Service tests grow around actual behavior as each slice is delivered.
+
+Delivered on `chore/phase-2-verification-operations`: nine real MySQL API scenarios, eight browser scenarios (six fixture/two real API), ten database/backup safety checks, 44 backend and nine frontend units. Both builds and lint pass. [CI success](https://github.com/farizindrad/personal-financial-tracker/actions/runs/39762203767) and a [controlled failing gate](https://github.com/farizindrad/personal-financial-tracker/actions/runs/39761417895) are recorded. Final privacy review also removed legacy demo-seed credential output and added a real-reset logging regression. Repeated restores reconcile counts, balances and both views; final restore took 976 ms on tiny synthetic data. See [evidence](../tasks/todo.md#phase-2-evidence---2026-10-22) and [operations](operations.md).
+
+Backup scheduling is supplied as reviewable templates; production timer activation, protected off-host storage, production-sized recovery rehearsal, deployed environment validation and branch protection remain operator work. Backend audit has zero high/critical findings and 20 moderate test-tool findings; frontend audit has zero. Existing six lint warnings and the bundle-size warning remain visible.
 
 ### Phase 3 — Complete recurring transactions (T15–T21)
 

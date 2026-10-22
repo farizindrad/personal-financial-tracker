@@ -1,6 +1,6 @@
 # Ledger — Implementation Plan
 
-Updated: 2026-10-22. Status: Phase 1 delivered with recorded evidence; Phase 2 is next. Later phases remain planned.
+Updated: 2026-10-22. Status: Phases 1–2 delivered with recorded evidence; Phase 3 (T15–T21 recurring transactions) is next. Later phases remain planned.
 
 ## Overview
 
@@ -13,6 +13,7 @@ Turn the existing finance MVP into a reliable daily application in small verifie
 - Audit snapshot: backend build and 21 unit tests in 10 suites passed; frontend lint had six warnings; backend lint had one Prettier error; frontend build did not complete before being stopped. Browser flows, backup restoration and deployed state remain unverified.
 - Source findings are candidates for reproducible regression tests, not evidence that the deployed application has been exercised.
 - The initial delivery created planning documents. Phase 1 now implements T01–T08; see todo.md for test/build evidence and commit IDs. Existing unrelated application/design edits remain outside these commits.
+- Phase 2 implements T09–T14 with guarded real MySQL/API/browser tests, remote CI success and a deliberate failure probe, backup/restore evidence, safe diagnostics and quota/environment checks. Production deployment, backup timer activation, branch protection and deployed config validation remain operator steps in operations.md.
 
 ## Architecture and execution decisions
 
@@ -52,11 +53,11 @@ Run from the repository root; commands below use Windows `npm.cmd` for this work
 | BU | `npm.cmd --prefix backend test -- --runInBand` |
 | BF | Focused backend suite: `npm.cmd --prefix backend test -- --runInBand <service-name>.service.spec.ts` |
 | BB | `npm.cmd --prefix backend run build` |
-| BL | `cd backend`, then `.\node_modules\.bin\eslint.cmd "{src,test}/**/*.ts"` (read-only; repository `lint` currently uses `--fix`) |
+| BL | `npm.cmd --prefix backend run lint:check` (read-only; `lint` uses `--fix`) |
 | FB | `npm.cmd --prefix frontend run build` (includes TypeScript build) |
 | FL | `npm.cmd --prefix frontend run lint` |
 | API | `npm.cmd --prefix backend run test:e2e -- --runInBand` using the isolated fixture configuration added by T09; never point it at private/demo production data |
-| WEB | Browser test runner/command established and documented in T10; there is currently no frontend test script. Add focused browser scenarios as each UI slice lands. |
+| WEB | `npm.cmd --prefix frontend run test:browser` (fixtures), then `npm.cmd --prefix frontend run test:integration` (dedicated MySQL/API); run database suites serially |
 | DOC | `git diff --check`; validate local Markdown links, task IDs and dependency ordering |
 
 Each task's verification references this table and includes a concrete manual/scenario check. For a frontend-only task, use WEB once available plus FB/FL. For backend-only work use BF (or BU for cross-cutting behavior), BB/BL. Use both groups for a full-stack slice. Do not claim a check exists before T09/T10 establish its fixture/runner.
@@ -78,6 +79,9 @@ At every 2–3-task checkpoint, run the affected suites/build/lint and inspect t
 | Scope grows beyond a session | Medium | Split actual >5-file tasks; phase 8 is decision-only until separately planned |
 
 ## Open decisions and proposed defaults
+
+- Operational follow-up: enable host-specific backup scheduling/protected off-host copies, rehearse production-sized recovery against proposed RPO 24h/RTO 30min, validate actual deployed private/demo targets and configure required checks before merging. Templates/local drills do not complete these host operations.
+- Dependency follow-up: 20 moderate findings remain in the Jest/ts-jest tool chain; reassess compatible upstream fixes without hiding advisories or forcing an unrelated ORM/test-stack migration. CI rejects high/critical findings.
 
 - T15: choose anchored month-end behavior (proposed: clamp to the last valid day and preserve the original anchor for later months), leap-day policy and a documented timezone. This is a proposal, not current behavior.
 - T18: decide whether resume skips or explicitly confirms missed occurrences. Never surprise the user with silent backfill; define bounds and inactive account/category handling.
