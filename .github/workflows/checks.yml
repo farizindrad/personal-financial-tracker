@@ -1,0 +1,97 @@
+name: Ledger checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledger-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - run: npm ci --prefix backend
+      - run: npm ci --prefix frontend
+      - run: npm run prisma:generate --prefix backend
+      - run: npm run lint:check --prefix backend
+      - run: npm run lint --prefix frontend
+      - run: npm run test:safety --prefix backend
+      - run: npm test --prefix backend -- --runInBand
+      - run: npm test --prefix frontend
+      - run: npm run build --prefix backend
+      - run: npm run build --prefix frontend
+      - run: npm audit --prefix backend --audit-level=high
+      - run: npm audit --prefix frontend --audit-level=high
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI_MYSQL_PASSWORD: ${{ secrets.CI_MYSQL_PASSWORD }}
+      ALLOW_TEST_DB_RESET: 'true'
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.CI_MYSQL_PASSWORD }}
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: ledger_test_ci
+        ports:
+          - 127.0.0.1:3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Configure disposable database targets
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          if (!process.env.CI_MYSQL_PASSWORD) throw new Error('CI_MYSQL_PASSWORD secret is required');
+          const url = new URL('mysql://root@127.0.0.1:3306/ledger_test_ci');
+          url.password = process.env.CI_MYSQL_PASSWORD;
+          let text = 'TEST_DATABASE_URL=' + url.href + '\n';
+          url.pathname = '/ledger_test_restore_ci';
+          text += 'RESTORE_TEST_DATABASE_URL=' + url.href + '\n';
+          fs.appendFileSync(process.env.GITHUB_ENV, text);
+          NODE
+      - run: npm ci --prefix backend
+      - run: npm ci --prefix frontend
+      - run: npm run prisma:generate --prefix backend
+      - run: npm run test:db:prepare --prefix backend
+      - run: npm run test:e2e --prefix backend -- --runInBand
+      - run: sudo apt-get update && sudo apt-get install -y mysql-client
+      - run: npm run test:restore --prefix backend
+      - working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:browser --prefix frontend
+      - run: npm run test:integration --prefix frontend
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: browser-failure-evidence
+          path: frontend/test-results
+          retention-days: 3
