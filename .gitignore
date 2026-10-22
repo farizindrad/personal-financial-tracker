@@ -3,6 +3,7 @@
 !.env.example
 !.env.local.example
 !backend/.env.example
+!backend/.env.test.example
 node_modules/
 dist/
 backend/dist/
