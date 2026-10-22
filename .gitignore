@@ -10,3 +10,5 @@ backend/public/
 frontend/dist/
 *.log
 graphify-out/
+frontend/test-results/
+frontend/playwright-report/
