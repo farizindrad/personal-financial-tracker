@@ -23,6 +23,7 @@ export function useCreateAccount() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['accounts'] }),
         qc.invalidateQueries({ queryKey: ['dashboard'] }),
+        qc.invalidateQueries({ queryKey: ['savings-goals'] }),
       ]);
     },
   });
@@ -37,6 +38,7 @@ export function useUpdateAccount() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['accounts'] }),
         qc.invalidateQueries({ queryKey: ['dashboard'] }),
+        qc.invalidateQueries({ queryKey: ['savings-goals'] }),
       ]);
     },
   });
@@ -51,6 +53,7 @@ export function useDeleteAccount() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['accounts'] }),
         qc.invalidateQueries({ queryKey: ['dashboard'] }),
+        qc.invalidateQueries({ queryKey: ['savings-goals'] }),
       ]);
     },
   });

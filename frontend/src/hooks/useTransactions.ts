@@ -39,6 +39,8 @@ export function useCreateTransaction() {
         qc.invalidateQueries({ queryKey: ['transactions'] }),
         qc.invalidateQueries({ queryKey: ['dashboard'] }),
         qc.invalidateQueries({ queryKey: ['accounts'] }),
+        qc.invalidateQueries({ queryKey: ['budgets'] }),
+        qc.invalidateQueries({ queryKey: ['savings-goals'] }),
       ]);
     },
   });
@@ -57,6 +59,8 @@ export function useUpdateTransaction() {
         qc.invalidateQueries({ queryKey: ['transactions'] }),
         qc.invalidateQueries({ queryKey: ['dashboard'] }),
         qc.invalidateQueries({ queryKey: ['accounts'] }),
+        qc.invalidateQueries({ queryKey: ['budgets'] }),
+        qc.invalidateQueries({ queryKey: ['savings-goals'] }),
       ]);
     },
   });
@@ -72,6 +76,8 @@ export function useDeleteTransaction() {
         qc.invalidateQueries({ queryKey: ['transactions'] }),
         qc.invalidateQueries({ queryKey: ['dashboard'] }),
         qc.invalidateQueries({ queryKey: ['accounts'] }),
+        qc.invalidateQueries({ queryKey: ['budgets'] }),
+        qc.invalidateQueries({ queryKey: ['savings-goals'] }),
       ]);
     },
   });
