@@ -17,6 +17,8 @@ export type Budget = {
 export type BudgetsResponse = {
   data: Budget[];
   meta: Paginated<Budget>['meta'] & { month: number; year: number };
+  /** Full-period totals, independent of page/limit; absent on older APIs. */
+  summary?: { budgeted: string; spent: string; remaining: string };
 };
 
 export type BudgetInput = {

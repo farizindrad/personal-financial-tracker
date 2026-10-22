@@ -112,10 +112,9 @@ export function DashboardPage() {
   const net = Number(data.netThisMonth);
   const periodLabel = formatPeriod(data.period.month, data.period.year);
 
-  const budgetRows = budgets.data?.data ?? [];
-  const budgetTotal = budgetRows.reduce((s, b) => s + Number(b.budgetAmount), 0);
-  const budgetSpent = budgetRows.reduce((s, b) => s + Number(b.spent), 0);
-  const budgetRemaining = budgetTotal - budgetSpent;
+  const budgetTotal = Number(budgets.data?.summary?.budgeted ?? 0);
+  const budgetSpent = Number(budgets.data?.summary?.spent ?? 0);
+  const budgetRemaining = Number(budgets.data?.summary?.remaining ?? 0);
   const budgetPct =
     budgetTotal > 0 ? Math.min(Math.round((budgetSpent / budgetTotal) * 100), 100) : 0;
 
@@ -243,7 +242,7 @@ export function DashboardPage() {
             <div>
               <p className="label-meta">Anggaran {periodLabel}</p>
               <p className="amount-plain mt-2 text-xl md:text-2xl">
-                {formatIdr(budgetRemaining)}
+                {budgets.data?.summary ? formatIdr(budgetRemaining) : '?'}
               </p>
             </div>
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-soft text-brand">

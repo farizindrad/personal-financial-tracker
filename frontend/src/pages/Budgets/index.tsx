@@ -89,12 +89,12 @@ export function BudgetsPage() {
   const totalPages = Math.max(1, Math.ceil((data?.meta.total ?? 0) / 20));
   const periodLabel = formatPeriod(month, year);
 
-  const totals = useMemo(() => {
-    const rows = data?.data ?? [];
-    const budgeted = rows.reduce((s, b) => s + Number(b.budgetAmount), 0);
-    const spent = rows.reduce((s, b) => s + Number(b.spent), 0);
-    return { budgeted, spent, remaining: budgeted - spent };
-  }, [data?.data]);
+  const totals = {
+    budgeted: Number(data?.summary?.budgeted ?? 0),
+    spent: Number(data?.summary?.spent ?? 0),
+    remaining: Number(data?.summary?.remaining ?? 0),
+  };
+  const hasSummary = data?.summary != null;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -186,19 +186,19 @@ export function BudgetsPage() {
               totals.remaining >= 0 ? 'text-white' : 'text-hazard',
             ].join(' ')}
           >
-            {formatIdr(totals.remaining)}
+              {hasSummary ? formatIdr(totals.remaining) : '—'}
           </p>
         </article>
         <article className="card p-5">
           <p className="label-meta">{UI.budgeted}</p>
           <p className="amount-plain mt-3 text-xl md:text-2xl">
-            {formatIdr(totals.budgeted)}
+            {hasSummary ? formatIdr(totals.budgeted) : '—'}
           </p>
         </article>
         <article className="card p-5">
           <p className="label-meta">{UI.spent}</p>
           <p className="amount-neg mt-3 text-xl md:text-2xl">
-            {formatIdr(totals.spent)}
+            {hasSummary ? formatIdr(totals.spent) : '—'}
           </p>
         </article>
       </section>

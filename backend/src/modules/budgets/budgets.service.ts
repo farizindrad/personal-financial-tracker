@@ -3,6 +3,24 @@ import { CategoryType, Prisma, TransactionType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpsertBudgetDto } from './dto/upsert-budget.dto';
 
+export type BudgetListResponse = {
+  data: Array<
+    Prisma.BudgetGetPayload<{ include: { category: true } }> & {
+      spent: Prisma.Decimal;
+      remaining: Prisma.Decimal;
+      percentUsed: number;
+    }
+  >;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    month: number;
+    year: number;
+  };
+  summary: { budgeted: string; spent: string; remaining: string };
+};
+
 @Injectable()
 export class BudgetsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -13,33 +31,44 @@ export class BudgetsService {
     year: number,
     page = 1,
     limit = 50,
-  ) {
+  ): Promise<BudgetListResponse> {
     const skip = (page - 1) * limit;
     const where = { userId, month, year };
     const periodStart = new Date(Date.UTC(year, month - 1, 1));
     const periodEnd = new Date(Date.UTC(year, month, 0));
 
     // Budget list + realisasi groupBy paralel — join di memory, bukan loop query
-    const [budgets, total, spentGroups] = await Promise.all([
-      this.prisma.budget.findMany({
-        where,
-        include: { category: true },
-        orderBy: { id: 'asc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.budget.count({ where }),
-      this.prisma.transaction.groupBy({
-        by: ['categoryId'],
-        where: {
-          userId,
-          type: TransactionType.expense,
-          categoryId: { not: null },
-          transactionDate: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { amount: true },
-      }),
-    ]);
+    const [budgets, total, spentGroups, budgetAggregate, expenseAggregate] =
+      await Promise.all([
+        this.prisma.budget.findMany({
+          where,
+          include: { category: true },
+          orderBy: { id: 'asc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.budget.count({ where }),
+        this.prisma.transaction.groupBy({
+          by: ['categoryId'],
+          where: {
+            userId,
+            type: TransactionType.expense,
+            categoryId: { not: null },
+            transactionDate: { gte: periodStart, lte: periodEnd },
+          },
+          _sum: { amount: true },
+        }),
+        this.prisma.budget.aggregate({ where, _sum: { budgetAmount: true } }),
+        this.prisma.transaction.aggregate({
+          where: {
+            userId,
+            type: TransactionType.expense,
+            transactionDate: { gte: periodStart, lte: periodEnd },
+            category: { budgets: { some: where } },
+          },
+          _sum: { amount: true },
+        }),
+      ]);
 
     const spentByCategoryId = new Map(
       spentGroups
@@ -70,9 +99,16 @@ export class BudgetsService {
       };
     });
 
+    const budgeted = budgetAggregate._sum.budgetAmount ?? new Prisma.Decimal(0);
+    const spent = expenseAggregate._sum.amount ?? new Prisma.Decimal(0);
     return {
       data,
       meta: { total, page, limit, month, year },
+      summary: {
+        budgeted: budgeted.toFixed(2),
+        spent: spent.toFixed(2),
+        remaining: budgeted.minus(spent).toFixed(2),
+      },
     };
   }
 
