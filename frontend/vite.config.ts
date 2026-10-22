@@ -9,7 +9,7 @@ export default defineConfig({
     proxy: {
       // Nest global prefix = /api — jangan strip
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.VITE_TEST_API_TARGET ?? 'http://localhost:3000',
         changeOrigin: true,
       },
     },
