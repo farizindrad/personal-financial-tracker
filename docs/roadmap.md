@@ -8,7 +8,7 @@ The app evolves from an MVP (single user, local) into a proper web application: 
 
 ## Target user
 
-Single user (the owner), now with a full multi-user/auth layer (email/password, per-user data scoping) so the app can be shared safely. A public demo instance (`finance-app-demo`) runs with auto-resetting seed data.
+Primarily the owner, with email/password authentication and per-user API scoping implemented. Browser cache isolation and cross-user regression tests still need work before treating multi-user readiness as verified. A public demo configuration (`finance-app-demo`) supports auto-resetting seed data.
 
 ## Product principles
 
@@ -17,72 +17,130 @@ Single user (the owner), now with a full multi-user/auth layer (email/password, 
 3. **Fast daily capture.** Recording one transaction should take under 10–15 seconds, or the habit dies.
 4. **Built for the long term.** Schema is designed so budgeting, savings targets, and CSV import don't require restructuring.
 
-## Current status
+## Current status — audited 2026-10-22
 
-The following are implemented (Fase 1 + part of Fase 2):
+The MVP scope has implementations, but this is not a production-readiness sign-off. The audit covered local source, unit tests, builds/lint, a fresh-context reviewer, and an additional Codex CLI review. Application issues below are source findings unless explicitly stated otherwise; browser flows and the deployed environment were not verified.
 
-- [x] Accounts / wallets CRUD (bank, cash, e-wallet, other) with live computed balances
-- [x] Categories + sub-categories (custom, soft-delete, color-coded)
-- [x] Transactions: income, expense, transfer between accounts
-- [x] Dashboard summary (total balance, monthly income/expense/net, recent transactions)
-- [x] Budgeting per category per month with realization tracking
-- [x] Savings goals with progress from linked account balance
-- [x] Recurring transactions (templates + daily scheduler)
-- [x] Auth & multi-user: email/password, JWT HttpOnly cookie, per-user scoping on all data
-- [x] Assets & liabilities CRUD with net worth (account balance + assets − liabilities)
-- [x] Calendar view (month/week grid, per-day income/expense drill-down) — merged as a tab inside the Transactions page
-- [x] Demo instance with auto-resetting seed (cron, demo-only)
-- [x] Web app shell: grouped sidebar navigation (Ringkasan / Keuangan / Perencanaan), topbar, responsive (mobile drawer)
-- [x] Clean GCP/Notion-inspired visual system (Outfit + JetBrains Mono, GCP blue accent)
+| Area | Implemented scope | Remaining work |
+|---|---|---|
+| Accounts | Wallet CRUD and live computed balances | Regression coverage and dependent-cache refresh |
+| Categories | Custom categories, two-level hierarchy, soft-delete | Enforce hierarchy when moving an existing parent |
+| Transactions | Income, expense, transfers, filters, pagination | Delete response and dependent-cache correctness |
+| Dashboard and calendar | Monthly summary, recent activity, daily/month/week views | Accurate aggregate widgets, reports and trends |
+| Budget | Monthly category limits, realization, over-budget UI | Totals across pages, fresh data, notifications |
+| Savings goals | Progress from linked account balance | Fresh data; contribution allocation is future scope |
+| Assets/liabilities | CRUD and net worth | Critical-flow regression coverage |
+| Auth | Registration/login, JWT HttpOnly cookie, per-user API queries | Browser cache isolation, production cookie hardening, isolation tests |
+| Recurring | Template API and daily scheduler | Date rules, duplicate protection, pause/resume semantics, management UI |
+| Demo and shell | Demo reset implementation; responsive grouped navigation | Runtime verification, accessibility and operational checks |
 
-## Phase 1 — MVP (done)
+Verification snapshot (not an ongoing guarantee): backend build passed; 10 unit suites / 21 tests passed; frontend lint had 0 errors and 6 refresh-export warnings; backend lint had one Prettier error in `src/seed/demo-seed.ts`. Frontend build was stopped after several minutes without a result, so it remains unverified. Existing E2E only covers `/api/health`.
 
-- Core CRUD: accounts, categories, transactions
-- Dashboard + basic reports
-- Foundation: MySQL schema, NestJS backend, React frontend
+## Delivery phases
 
-## Phase 2 — Discipline features (mostly done)
+This sequence supersedes the earlier three-phase grouping. Existing features remain the baseline (Phase 0); all new tasks are unchecked. Product direction lives here; execution decisions and dependencies live in [tasks/plan.md](../tasks/plan.md), and completion evidence belongs in [tasks/todo.md](../tasks/todo.md). Task IDs are shared across all three documents.
 
-- [x] Budgeting per category per month (+ over-budget warnings in UI)
-- [x] Savings goals with progress tracking
-- [x] Recurring transactions (salary, monthly bills)
-- [ ] Monthly trend reports (income vs expense chart over several months) — dashboard only shows current month
-- [ ] Budget limit notifications (in-app or email)
+### Phase 0 — Existing MVP baseline
 
-## Phase 3 — Data & rich tracking
+- [x] Accounts, categories, income/expense/transfers, monthly dashboard and transaction calendar implemented
+- [x] Budget realization, account-linked savings, assets/liabilities and net worth implemented
+- [x] Auth API, demo reset and responsive shell implemented
+- [x] Recurring template API and scheduler implemented (partial feature, not a completed user flow)
 
-- [ ] CSV import / e-statement upload (semi-automation, manual review)
-- [ ] Receipt/note attachments (photo)
-- [ ] Free tags across categories (e.g., "Bali trip")
-- [ ] Multi-currency (if needed)
+Known defects are tracked in later phases; checked items above mean implementation exists, not that every flow is verified.
 
-## Post-MVP hardening (proper web app)
+### Phase 1 — Data correctness and user isolation (T01–T08)
 
-Product-quality work beyond feature scope:
+- [ ] T01: Isolate financial query cache across login/logout and in-flight requests
+- [ ] T02: Return success after deleting an owned transaction; preserve other users' data
+- [ ] T03: Refresh budget and savings progress after transactions or account-balance changes
+- [ ] T04: Calculate monthly budget totals across the full dataset, not the current page
+- [ ] T05: Show widget loading/errors honestly and link dashboard calendar dates correctly
+- [ ] T06: Enforce the two-level category hierarchy on parent changes
+- [ ] T07: Set secure production session-cookie behavior with local HTTP support
+- [ ] T08: Restore a reproducible frontend build and clean lint baseline without weakening checks
 
-### Product & UX
-- [ ] Real reports page: category breakdown with date range, monthly trends (chart), export CSV
-- [ ] Charts (income vs expense, category donut) — e.g., a lightweight chart lib or custom SVG
-- [ ] Better empty states, onboarding first-run wizard (create first accounts/categories)
-- [ ] Command palette / global "quick add" shortcut (keyboard `n`)
-- [ ] Currency formatting options and locale switching
+Exit: account switching shows no previous-user data; create/edit/delete/transfer and monthly totals pass regression checks; affected builds and lint pass.
 
-### Engineering & reliability
-- [ ] Automated tests across all services (currently each core service has a spec; grow coverage)
-- [ ] E2E tests for main user flows (add account → add transaction → see dashboard)
-- [ ] CI (even minimal): lint + type-check + test on push
-- [ ] Structured logging / request logging; optional error tracking
-- [ ] Backup strategy for MySQL (e.g., scheduled `mysqldump`)
+### Phase 2 — Verification and operations (T09–T14)
 
-### Security & scale
-- [x] Multi-user + authentication (email/password, JWT HttpOnly cookie, ownership scoping on every query)
-- [x] Demo mode reset scheduler (periodic seed reset for `finance-app-demo`)
-- [ ] Separate read/write throttling tuned per environment
+- [ ] T09: Add repeatable critical financial API integration tests with isolated test data
+- [ ] T10: Verify browser account switching and the main account → transaction → dashboard flow
+- [ ] T11: Run lint, type/build checks and tests in CI; no automatic production deployment
+- [ ] T12: Automate MySQL backups and prove restoration into an isolated database
+- [ ] T13: Add request IDs and structured request/job logs without financial payloads or secrets
+- [ ] T14: Verify environment-specific write/auth throttling and demo/private separation
 
-### Accessibility & polish
-- [ ] Full keyboard navigation + focus states audit
-- [ ] Color-contrast pass on all states
-- [ ] Reduced-motion support for GSAP transitions
+Exit: CI checks run; cross-user and critical browser flows pass; restore evidence and an operational runbook exist. Service tests grow around actual behavior as each slice is delivered.
+
+### Phase 3 — Complete recurring transactions (T15–T21)
+
+- [ ] T15: Define and test month-end/leap-year scheduling and timezone behavior
+- [ ] T16: Validate start/end/next-run dates consistently on create and update
+- [ ] T17: Prevent duplicate generation under overlapping execution and retries
+- [ ] T18: Define pause/resume, catch-up limits and inactive-relation behavior
+- [ ] T19: Provide a recurring schedule list with navigation and loading/error states
+- [ ] T20: Let users create a schedule through the application
+- [ ] T21: Let users edit, pause and resume a schedule with explicit catch-up feedback
+
+Exit: the complete UI flow produces the expected occurrence once; date boundaries, restart/retry and pause/resume cases are verified. No new queue or service is required by default.
+
+### Phase 4 — Reports and data export (T22–T25)
+
+- [ ] T22: Report income/expense by date range and category with accurate totals
+- [ ] T23: Add a multi-month income/expense trend with zero-activity months
+- [ ] T24: Add accessible trend and category-breakdown charts with tabular alternatives
+- [ ] T25: Export the full filtered transaction dataset as safe CSV, independent of pagination
+
+Exit: reports reconcile with transactions; transfers do not inflate income/expense; export matches the selected scope. CSV export precedes import.
+
+### Phase 5 — Daily capture and accessible UX (T26–T31)
+
+- [ ] T26: Guide first-time users through account/category setup with useful empty states
+- [ ] T27: Open a reusable quick-add transaction form with a global `n` shortcut
+- [ ] T28: Add deduplicated in-app budget threshold alerts
+- [ ] T29: Audit and fix keyboard navigation, dialogs and focus restoration
+- [ ] T30: Audit and fix contrast and non-color status indicators
+- [ ] T31: Honor reduced-motion preferences across GSAP and CSS transitions
+
+Exit: first-run and daily capture work on mobile and keyboard; shortcut avoids text inputs; alerts remain useful without duplication. Capture target: under 10–15 seconds in a documented representative flow.
+
+### Phase 6 — Reviewed CSV import (T32–T34)
+
+- [ ] T32: Define supported CSV/e-statement format and implement bounded preview parsing
+- [ ] T33: Map columns, dates, amounts, accounts and categories with explicit validation
+- [ ] T34: Confirm imports with duplicate detection, retry safety and an import result summary
+
+Exit: preview writes nothing; confirmed imports are scoped to the owner and reconcile with balances; retries do not duplicate rows. Start with one documented CSV format; PDF/OCR and bank sync are separate future decisions.
+
+### Phase 7 — Rich tracking (T35–T38)
+
+- [ ] T35: Set attachment storage/access/retention rules and add a secure receipt upload slice
+- [ ] T36: Let owners view/remove receipt attachments with transaction-aware cleanup
+- [ ] T37: Add owned tags and transaction tagging
+- [ ] T38: Filter transactions/reports by tags such as a trip or project
+
+Exit: attachments cannot be read across users; lifecycle cleanup is verified; tag filters preserve report totals. Storage and schema changes require explicit migration/recovery notes.
+
+### Phase 8 — Conditional expansion (T39–T42)
+
+These are retained opportunities, not committed implementation scope. Each task first produces a small decision/specification; approved implementation must be decomposed before coding.
+
+- [ ] T39: Evaluate email budget reminders after in-app alerts (provider, opt-in, privacy, retries)
+- [ ] T40: Evaluate formatting/locale preferences and multi-currency separately (valuation, FX source, precision)
+- [ ] T41: Evaluate Google OAuth only if broader sharing warrants it (account linking/recovery)
+- [ ] T42: Evaluate a command palette and external error tracking against demonstrated needs
+
+Exit: each opportunity has an explicit adopt/defer decision, rationale and, if adopted, a separate small-slice plan. IDR remains the default; no silent scope expansion.
+
+## Increment rules
+
+1. Deliver one logical outcome per task; target 1–5 implementation files. Split further if the actual change grows beyond that.
+2. Write a regression test for behavioral fixes, implement the slice, run focused checks and the affected build/lint, then record evidence and commit only that slice.
+3. Keep every increment usable and revertible. Hide unfinished user-facing features behind a disabled flag when needed.
+4. Checkpoint every 2–3 tasks and at phase exits. Review evidence and remaining risks before continuing.
+5. Use local/disposable data for integration tests, scheduler checks and restore drills. Production data changes/deployments are separate work.
+6. Mark tasks done only after acceptance and verification pass; update this phase summary from the task list rather than treating a document edit as implementation.
 
 ## Design direction
 
@@ -109,9 +167,12 @@ Current shell is a **clean GCP/Notion-style desktop layout**:
 
 ## Open questions
 
-- OAuth / "sign in with Google" if sharing becomes real.
-- Charting library choice once the reports page is built.
-- Whether to add CSV export before CSV import.
+- Recurring month-end policy, timezone and pause/resume catch-up semantics (T15/T18).
+- Budget alert threshold and acknowledgement/reset behavior (T28).
+- Charting choice based on accessibility, bundle impact and existing stack (T24).
+- First supported CSV/e-statement format (T32); export comes first (T25).
+- Attachment storage/retention and private access policy (T35).
+- OAuth, locale/multi-currency, email reminders and external error tracking are conditional Phase 8 decisions.
 
 ## Related documents
 
@@ -120,3 +181,5 @@ Current shell is a **clean GCP/Notion-style desktop layout**:
 - [architecture.md](architecture.md) — system design & tech stack
 - [development.md](development.md) — local setup
 - [api-reference.md](api-reference.md) — REST endpoints
+- [Implementation plan](../tasks/plan.md) — dependencies, decisions, risks and verification commands
+- [Task checklist](../tasks/todo.md) — acceptance criteria, checkpoints and execution evidence
