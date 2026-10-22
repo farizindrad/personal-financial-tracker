@@ -1,4 +1,14 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+const API_BASE = import.meta.env.VITE_API_BASE ?? "/api";
+
+export const SESSION_EXPIRED_EVENT = "ledger:session-expired";
+let sessionGeneration = 0;
+const requests = new Set<AbortController>();
+
+export function resetSessionRequests() {
+  sessionGeneration += 1;
+  for (const controller of requests) controller.abort();
+  requests.clear();
+}
 
 export class ApiError extends Error {
   status: number;
@@ -6,13 +16,13 @@ export class ApiError extends Error {
 
   constructor(status: number, message: string, body?: unknown) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.status = status;
     this.body = body;
   }
 }
 
-type RequestOptions = Omit<RequestInit, 'body'> & {
+type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
 };
 
@@ -20,38 +30,56 @@ export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, headers, ...rest } = options;
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...rest,
-    credentials: 'same-origin',
-    headers: {
-      Accept: 'application/json',
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const { body, headers, signal, ...rest } = options;
+  const generation = sessionGeneration;
+  const controller = new AbortController();
+  requests.add(controller);
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...rest,
+      signal: signal
+        ? AbortSignal.any([signal, controller.signal])
+        : controller.signal,
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...headers,
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
 
-  if (response.status === 204) {
-    return undefined as T;
+    if (generation !== sessionGeneration)
+      throw new DOMException("Session changed", "AbortError");
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    const text = await response.text();
+    if (generation !== sessionGeneration)
+      throw new DOMException("Session changed", "AbortError");
+    const data = text ? (JSON.parse(text) as unknown) : null;
+
+    if (!response.ok) {
+      if (response.status === 401 && !path.startsWith("/auth/")) {
+        window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      }
+      const message =
+        data &&
+        typeof data === "object" &&
+        "message" in data &&
+        (typeof (data as { message: unknown }).message === "string" ||
+          Array.isArray((data as { message: unknown }).message))
+          ? Array.isArray((data as { message: unknown }).message)
+            ? (data as { message: string[] }).message.join(", ")
+            : (data as { message: string }).message
+          : response.statusText;
+      throw new ApiError(response.status, message, data);
+    }
+
+    return data as T;
+  } finally {
+    requests.delete(controller);
   }
-
-  const text = await response.text();
-  const data = text ? (JSON.parse(text) as unknown) : null;
-
-  if (!response.ok) {
-    const message =
-      data &&
-      typeof data === 'object' &&
-      'message' in data &&
-      (typeof (data as { message: unknown }).message === 'string' ||
-        Array.isArray((data as { message: unknown }).message))
-        ? Array.isArray((data as { message: unknown }).message)
-          ? ((data as { message: string[] }).message).join(', ')
-          : ((data as { message: string }).message)
-        : response.statusText;
-    throw new ApiError(response.status, message, data);
-  }
-
-  return data as T;
 }
