@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CategoryType, TransactionType } from '@prisma/client';
 import { TransactionsService } from './transactions.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -118,4 +118,40 @@ describe('TransactionsService', () => {
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('deletes an owned row successfully without trying to read it afterwards', async () => {
+    const rows = [
+      { id: 10, userId: 1 },
+      { id: 20, userId: 2 },
+    ];
+    prisma.transaction.deleteMany.mockImplementation(
+      ({ where }: { where: { id: number; userId: number } }) => {
+        const index = rows.findIndex(
+          (row) => row.id === where.id && row.userId === where.userId,
+        );
+        if (index < 0) return Promise.resolve({ count: 0 });
+        rows.splice(index, 1);
+        return Promise.resolve({ count: 1 });
+      },
+    );
+    prisma.transaction.findFirstOrThrow.mockRejectedValue(
+      new Error('Deleted records cannot be read'),
+    );
+
+    await expect(service.remove(1, 10)).resolves.toBeUndefined();
+    expect(rows).toEqual([{ id: 20, userId: 2 }]);
+  });
+
+  it.each([10, 20])(
+    'returns not-found for a missing or unowned row (%i)',
+    async (id) => {
+      prisma.transaction.deleteMany.mockResolvedValue({ count: 0 });
+      await expect(service.remove(1, id)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(prisma.transaction.deleteMany).toHaveBeenCalledWith({
+        where: { id, userId: 1 },
+      });
+    },
+  );
 });

@@ -3,12 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  CategoryType,
-  Prisma,
-  Transaction,
-  TransactionType,
-} from '@prisma/client';
+import { CategoryType, Prisma, TransactionType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -152,16 +147,13 @@ export class TransactionsService {
     });
   }
 
-  async remove(userId: number, id: number): Promise<Transaction> {
+  async remove(userId: number, id: number): Promise<void> {
     const result = await this.prisma.transaction.deleteMany({
       where: { id, userId },
     });
     if (result.count === 0) {
       throw new NotFoundException(`Transaction #${id} not found`);
     }
-    return this.prisma.transaction.findFirstOrThrow({
-      where: { id, userId },
-    });
   }
 
   private normalizePayload(input: {
