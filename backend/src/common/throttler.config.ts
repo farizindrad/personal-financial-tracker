@@ -1,5 +1,9 @@
 import { ConfigService } from '@nestjs/config';
+import { SetMetadata } from '@nestjs/common';
 import type { ThrottlerModuleOptions } from '@nestjs/throttler';
+
+const AUTH_THROTTLE = 'ledger:auth-throttle';
+export const AuthThrottle = () => SetMetadata(AUTH_THROTTLE, true);
 
 export function isDemoMode(config: ConfigService): boolean {
   return (
@@ -29,6 +33,8 @@ export function createThrottlerOptions(
         name: 'auth',
         ttl: 60_000,
         limit: demo ? 5 : 10,
+        skipIf: (context) =>
+          Reflect.getMetadata(AUTH_THROTTLE, context.getHandler()) !== true,
       },
     ],
     errorMessage: demo

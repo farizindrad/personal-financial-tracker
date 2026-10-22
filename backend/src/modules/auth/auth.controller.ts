@@ -8,13 +8,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { AUTH_COOKIE } from './auth.guard';
 import { CurrentUser, Public } from './auth.decorators';
 import type { AuthUser } from './auth.decorators';
-import { isDemoMode } from '../../common/throttler.config';
+import { AuthThrottle, isDemoMode } from '../../common/throttler.config';
 import { resolveDemoEmail } from '../../seed/demo-seed';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -37,7 +36,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ auth: { limit: 10, ttl: 60_000 } })
+  @AuthThrottle()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(
@@ -50,7 +49,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ auth: { limit: 10, ttl: 60_000 } })
+  @AuthThrottle()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
