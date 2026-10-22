@@ -18,14 +18,7 @@ import { isDemoMode } from '../../common/throttler.config';
 import { resolveDemoEmail } from '../../seed/demo-seed';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
-export const AUTH_COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: false,
-  path: '/',
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 hari
-};
+import { sessionCookieOptions } from './session.config';
 
 @Controller('auth')
 export class AuthController {
@@ -52,7 +45,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, token } = await this.authService.register(dto);
-    res.cookie(AUTH_COOKIE, token, AUTH_COOKIE_OPTIONS);
+    res.cookie(AUTH_COOKIE, token, sessionCookieOptions(this.config));
     return { user };
   }
 
@@ -65,7 +58,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, token } = await this.authService.login(dto);
-    res.cookie(AUTH_COOKIE, token, AUTH_COOKIE_OPTIONS);
+    res.cookie(AUTH_COOKIE, token, sessionCookieOptions(this.config));
     return { user };
   }
 
@@ -73,7 +66,13 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie(AUTH_COOKIE, { path: '/' });
+    const options = sessionCookieOptions(this.config);
+    res.clearCookie(AUTH_COOKIE, {
+      httpOnly: options.httpOnly,
+      sameSite: options.sameSite,
+      secure: options.secure,
+      path: options.path,
+    });
     return { ok: true };
   }
 

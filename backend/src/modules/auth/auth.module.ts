@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
+import { sessionCookieOptions, sessionTtlDays } from './session.config';
 
 @Module({
   imports: [
@@ -12,7 +13,8 @@ import { AuthGuard } from './auth.guard';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const ttlDays = Number(config.get<string>('SESSION_TTL_DAYS') ?? '30');
+        sessionCookieOptions(config);
+        const ttlDays = sessionTtlDays(config);
         return {
           secret:
             config.get<string>('JWT_SECRET') ?? 'dev-insecure-secret-change-me',

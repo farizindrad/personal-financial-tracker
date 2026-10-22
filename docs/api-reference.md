@@ -33,11 +33,11 @@ Public. Body: `email`, `password` (min 6). Creates a user, sets the session cook
 
 ### POST /auth/login
 
-Public. Body: `email`, `password`. Sets the `ledger_token` HttpOnly cookie.
+Public. Body: `email`, `password`. Sets the `ledger_token` HttpOnly cookie. Production cookies require HTTPS (`Secure`, `SameSite=Lax`, `Path=/`). Cookie max-age and JWT expiry both use `SESSION_TTL_DAYS`; see [configuration](development.md#session-transport-configuration). Login/register create a fresh token on every success and do not implement an idempotency-key contract.
 
 ### POST /auth/logout
 
-Clears the session cookie.
+Clears the session cookie with the same transport/path scope and returns `{ "ok": true }`. Repeating logout is safe. Client-side financial caches are discarded on logout; this does not revoke an already issued JWT beyond removing the cookie.
 
 ### GET /auth/me
 
@@ -153,7 +153,7 @@ Same fields as POST, all optional. `categoryId`/`transferToAccountId` accept `nu
 
 ### DELETE /transactions/:id
 
-Hard delete. Returns `204`. Account balances recompute automatically.
+Hard delete of an owned transaction. Returns `204` with no response body after deletion. A missing or another user's ID returns `404` without disclosing ownership. Repeating a successful delete returns `404`; the deleted state is unchanged. Account balances recompute automatically.
 
 ## Dashboard
 
@@ -268,7 +268,7 @@ Hard delete. Returns `204`.
 
 ### GET /budgets
 
-Query (required): `month` (1–12), `year` (2000–2100). Also `page`, `limit`. Each row includes realization data.
+Query (required): `month` (1–12), `year` (2000–2100). Also `page`, `limit`. Each row includes realization data. The additive `summary` field contains full-period `budgeted`, `spent` and `remaining` decimal strings (two decimal places), independent of pagination. Spending covers expense transactions in categories with an owned budget for the selected period; transfers and expenses in unbudgeted categories are excluded. Empty periods return zero totals. `data` and `meta` retain their existing shape. Older APIs may omit `summary`; clients must show an unavailable state rather than sum one page.
 
 ```json
 {
@@ -279,7 +279,8 @@ Query (required): `month` (1–12), `year` (2000–2100). Also `page`, `limit`. 
         "parentId": null, "icon": null, "color": "#1D9E75", "isActive": true },
       "spent": "450000.00", "remaining": "550000.00", "percentUsed": 45 }
   ],
-  "meta": { "total": 1, "page": 1, "limit": 50, "month": 8, "year": 2026 }
+  "meta": { "total": 1, "page": 1, "limit": 50, "month": 8, "year": 2026 },
+  "summary": { "budgeted": "1000000.00", "spent": "450000.00", "remaining": "550000.00" }
 }
 ```
 
